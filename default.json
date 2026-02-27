@@ -4,6 +4,8 @@
         "config:best-practices",
         "github>Pinguteca/renovate-config"
     ],
+    "dependencyDashboard": true,
+    "configMigration": true,
     "semanticCommits": "enabled",
     "draftPR": true,
     "labels": [
