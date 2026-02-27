@@ -1,0 +1,45 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:best-practices",
+        "github>Pinguteca/renovate-config"
+    ],
+    "semanticCommits": "enabled",
+    "draftPR": true,
+    "labels": [
+        "renovate"
+    ],
+    "branchPrefix": "renovate/",
+    "branchNameStrict": true,
+    "automergeType": "pr",
+    "prCreation": "immediate",
+    "pin": {
+        "commitBody": "[skip ci]"
+    },
+    "hostRules": [
+        {
+            "enableHttp2": true
+        }
+    ],
+    "minimumReleaseAge": "21 days",
+    "vulnerabilityAlerts": {
+        "vulnerabilityFixStrategy": "lowest",
+        "labels": [
+            "security"
+        ],
+        "automerge": true
+    },
+    "lockFileMaintenance": {
+        "enabled": false,
+        "schedule": [
+            "* 0-3 * * *"
+        ],
+        "automerge": true
+    },
+    "pre-commit": {
+        "enabled": true
+    },
+    "internalChecksFilter": "strict",
+    "rangeStrategy": "bump",
+    "separateMinorPatch": false
+}
