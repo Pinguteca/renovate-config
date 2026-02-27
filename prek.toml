@@ -51,6 +51,7 @@ hooks = [
   {
     id = "renovate-config-validator",
     args = ["--strict"],
+    files = ".*\\.json$",
     stages = ["pre-push"]
   }
 ]
