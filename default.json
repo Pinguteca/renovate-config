@@ -2,12 +2,14 @@
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
     "extends": [
         "config:best-practices",
+        "mergeConfidence:all-badges",
         "github>Pinguteca/renovate-config"
     ],
     "dependencyDashboard": true,
     "configMigration": true,
     "semanticCommits": "enabled",
     "draftPR": true,
+    "automerge": false,
     "labels": [
         "renovate"
     ],
@@ -16,7 +18,8 @@
     "automergeType": "pr",
     "prCreation": "immediate",
     "pin": {
-        "commitBody": "[skip ci]"
+        "commitBody": "[skip ci]",
+        "automerge": true
     },
     "hostRules": [
         {
@@ -32,7 +35,7 @@
         "automerge": true
     },
     "lockFileMaintenance": {
-        "enabled": false,
+        "enabled": true,
         "schedule": [
             "* 0-3 * * *"
         ],
