@@ -43,6 +43,8 @@
     "internalChecksFilter": "strict",
     "rangeStrategy": "bump",
     "separateMinorPatch": false,
+    "separateMajorMinor": true,
+    "separateMultipleMajor": true,
     "gitIgnoredAuthors": [
         "github-actions[bot]@users.noreply.github.com",
         "41898282+github-actions[bot]@users.noreply.github.com"
