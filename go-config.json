@@ -1,0 +1,13 @@
+{
+  "packageRules": [
+    {
+      "matchManagers": [
+        "go"
+      ],
+      "groupName": "Go updates",
+      "addLabels": [
+        "go"
+      ]
+    }
+  ]
+}
