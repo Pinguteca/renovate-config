@@ -41,9 +41,6 @@
         ],
         "automerge": true
     },
-    "pre-commit": {
-        "enabled": true
-    },
     "internalChecksFilter": "strict",
     "rangeStrategy": "bump",
     "separateMinorPatch": false
