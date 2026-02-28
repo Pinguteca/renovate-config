@@ -1,0 +1,13 @@
+{
+  "packageRules": [
+    {
+      "matchManagers": [
+        "mise"
+      ],
+      "groupName": "Mise updates",
+      "addLabels": [
+        "mise"
+      ]
+    }
+  ]
+}
