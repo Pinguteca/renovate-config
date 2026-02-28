@@ -2,7 +2,7 @@
   "packageRules": [
     {
       "matchManagers": [
-        "go"
+        "gomod"
       ],
       "groupName": "Go updates",
       "addLabels": [
