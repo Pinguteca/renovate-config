@@ -6,7 +6,7 @@
       ],
       "groupName": ".NET updates",
       "addLabels": [
-        ".NET",
+        "dotnet",
         "nuget"
       ]
     }
