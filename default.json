@@ -7,7 +7,8 @@
     "schedule:nonOfficeHours",
     "security:openssf-scorecard",
     "github>Pinguteca/renovate-config:container-config",
-    "github>Pinguteca/renovate-config:github-actions-config"
+    "github>Pinguteca/renovate-config:github-actions-config",
+    "github>Pinguteca/renovate-config:pre-commit-config"
   ],
   "timezone": "Europe/Madrid",
   "semanticCommits": "enabled",
