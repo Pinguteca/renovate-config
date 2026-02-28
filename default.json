@@ -1,52 +1,52 @@
 {
-    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-    "extends": [
-        "config:best-practices",
-        "mergeConfidence:all-badges"
-    ],
-    "dependencyDashboard": true,
-    "configMigration": true,
-    "semanticCommits": "enabled",
-    "draftPR": true,
-    "automerge": false,
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices",
+    "mergeConfidence:all-badges",
+    "schedule:automergeOfficeHours",
+    "schedule:nonOfficeHours",
+    "group:monorepos"
+  ],
+  "dependencyDashboard": true,
+  "configMigration": true,
+  "semanticCommits": "enabled",
+  "draftPR": true,
+  "automerge": false,
+  "labels": [
+    "renovate"
+  ],
+  "branchPrefix": "renovate/",
+  "branchNameStrict": true,
+  "automergeType": "pr",
+  "prCreation": "immediate",
+  "pin": {
+    "commitBody": "[skip ci]",
+    "automerge": true
+  },
+  "hostRules": [
+    {
+      "enableHttp2": true
+    }
+  ],
+  "minimumReleaseAge": "21 days",
+  "vulnerabilityAlerts": {
+    "vulnerabilityFixStrategy": "lowest",
     "labels": [
-        "renovate"
+      "security"
     ],
-    "branchPrefix": "renovate/",
-    "branchNameStrict": true,
-    "automergeType": "pr",
-    "prCreation": "immediate",
-    "pin": {
-        "commitBody": "[skip ci]",
-        "automerge": true
-    },
-    "hostRules": [
-        {
-            "enableHttp2": true
-        }
-    ],
-    "minimumReleaseAge": "21 days",
-    "vulnerabilityAlerts": {
-        "vulnerabilityFixStrategy": "lowest",
-        "labels": [
-            "security"
-        ],
-        "automerge": true
-    },
-    "lockFileMaintenance": {
-        "enabled": true,
-        "schedule": [
-            "* 0-3 * * *"
-        ],
-        "automerge": true
-    },
-    "internalChecksFilter": "strict",
-    "rangeStrategy": "bump",
-    "separateMinorPatch": false,
-    "separateMajorMinor": true,
-    "separateMultipleMajor": true,
-    "gitIgnoredAuthors": [
-        "github-actions[bot]@users.noreply.github.com",
-        "41898282+github-actions[bot]@users.noreply.github.com"
-    ]
+    "automerge": true
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true
+  },
+  "internalChecksFilter": "strict",
+  "rangeStrategy": "bump",
+  "separateMinorPatch": false,
+  "separateMajorMinor": true,
+  "separateMultipleMajor": true,
+  "gitIgnoredAuthors": [
+    "github-actions[bot]@users.noreply.github.com",
+    "41898282+github-actions[bot]@users.noreply.github.com"
+  ]
 }
