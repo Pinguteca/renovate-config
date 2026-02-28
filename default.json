@@ -5,12 +5,9 @@
     "mergeConfidence:all-badges",
     "schedule:automergeOfficeHours",
     "schedule:nonOfficeHours",
-    "group:monorepos",
     "security:openssf-scorecard"
   ],
-  "dependencyDashboard": true,
   "timezone": "Europe/Madrid",
-  "configMigration": true,
   "semanticCommits": "enabled",
   "draftPR": true,
   "automerge": false,
