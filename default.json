@@ -6,7 +6,8 @@
     "schedule:automergeOfficeHours",
     "schedule:nonOfficeHours",
     "security:openssf-scorecard",
-    "github>Pinguteca/renovate-config:container-config"
+    "github>Pinguteca/renovate-config:container-config",
+    "github>Pinguteca/renovate-config:github-actions-config"
   ],
   "timezone": "Europe/Madrid",
   "semanticCommits": "enabled",
