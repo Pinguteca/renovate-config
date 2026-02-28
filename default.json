@@ -5,7 +5,8 @@
     "mergeConfidence:all-badges",
     "schedule:automergeOfficeHours",
     "schedule:nonOfficeHours",
-    "group:monorepos"
+    "group:monorepos",
+    "security:openssf-scorecard"
   ],
   "dependencyDashboard": true,
   "configMigration": true,
