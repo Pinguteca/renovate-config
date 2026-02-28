@@ -1,0 +1,5 @@
+{
+  "extends": [
+    "github>Pinguteca/renovate-config"
+  ]
+}
