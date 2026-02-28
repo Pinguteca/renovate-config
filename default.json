@@ -23,6 +23,9 @@
   "branchNameStrict": true,
   "rebaseWhen": "auto",
   "prCreation": "immediate",
+  "prBodyNotes": [
+    "{{#if isMajor}}:warning: MAJOR UPDATE, may require additional runtime testing to ensure compatibility. :warning:{{/if}}"
+  ],
   "pin": {
     "commitBody": "[skip ci]",
     "automerge": true
