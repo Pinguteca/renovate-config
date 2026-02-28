@@ -9,5 +9,9 @@
         "go"
       ]
     }
+  ],
+  "postUpdateOptions": [
+    "gomodTidy",
+    "gomodUpdateImportPaths"
   ]
 }
