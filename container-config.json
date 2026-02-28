@@ -1,0 +1,17 @@
+{
+  "packageRules": [
+    {
+      "matchManagers": [
+        "dockerfile",
+        "docker-compose",
+        "quadlet",
+        "devcontainer",
+        "buildpacks"
+      ],
+      "groupName": "Container image updates",
+      "addLabels": [
+        "container"
+      ]
+    }
+  ]
+}

@@ -5,7 +5,8 @@
     "mergeConfidence:all-badges",
     "schedule:automergeOfficeHours",
     "schedule:nonOfficeHours",
-    "security:openssf-scorecard"
+    "security:openssf-scorecard",
+    "github>Pinguteca/renovate-config:container-config"
   ],
   "timezone": "Europe/Madrid",
   "semanticCommits": "enabled",
