@@ -2,8 +2,7 @@
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
     "extends": [
         "config:best-practices",
-        "mergeConfidence:all-badges",
-        "github>Pinguteca/renovate-config"
+        "mergeConfidence:all-badges"
     ],
     "dependencyDashboard": true,
     "configMigration": true,
@@ -43,5 +42,9 @@
     },
     "internalChecksFilter": "strict",
     "rangeStrategy": "bump",
-    "separateMinorPatch": false
+    "separateMinorPatch": false,
+    "gitIgnoredAuthors": [
+        "github-actions[bot]@users.noreply.github.com",
+        "41898282+github-actions[bot]@users.noreply.github.com"
+    ]
 }
