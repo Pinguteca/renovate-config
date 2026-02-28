@@ -1,0 +1,13 @@
+{
+  "packageRules": [
+    {
+      "matchCategories": [
+        "python"
+      ],
+      "groupName": "Python updates",
+      "addLabels": [
+        "python"
+      ]
+    }
+  ]
+}

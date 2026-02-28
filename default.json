@@ -11,7 +11,8 @@
     "github>Pinguteca/renovate-config:pre-commit-config",
     "github>Pinguteca/renovate-config:mise-config",
     "github>Pinguteca/renovate-config:dotnet-config",
-    "github>Pinguteca/renovate-config:go-config"
+    "github>Pinguteca/renovate-config:go-config",
+    "github>Pinguteca/renovate-config:python-config"
   ],
   "timezone": "Europe/Madrid",
   "semanticCommits": "enabled",
