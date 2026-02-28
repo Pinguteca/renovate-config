@@ -1,0 +1,14 @@
+{
+  "packageRules": [
+    {
+      "matchManagers": [
+        "nuget"
+      ],
+      "groupName": ".NET updates",
+      "addLabels": [
+        ".NET",
+        "nuget"
+      ]
+    }
+  ]
+}
