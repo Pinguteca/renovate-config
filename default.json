@@ -21,7 +21,7 @@
   "stopUpdatingLabel": "have-a-break-renovate",
   "branchPrefix": "renovate/",
   "branchNameStrict": true,
-  "automergeType": "pr",
+  "rebaseWhen": "auto",
   "prCreation": "immediate",
   "pin": {
     "commitBody": "[skip ci]",
