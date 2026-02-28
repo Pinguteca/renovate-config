@@ -18,6 +18,7 @@
   "labels": [
     "renovate"
   ],
+  "stopUpdatingLabel": "have-a-break-renovate",
   "branchPrefix": "renovate/",
   "branchNameStrict": true,
   "automergeType": "pr",
