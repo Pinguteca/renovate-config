@@ -20,9 +20,18 @@
   "packageRules": [
     {
       "matchManagers": [
-        "mise"
+        "mise",
+        "custom.regex"
       ],
-      "groupName": "Mise core updates",
+      "matchFileNames": [
+        "**/{,.}mise{,.*}.toml",
+        "**/{,.}mise/config{,.*}.toml",
+        "**/.config/mise{,.*}.toml",
+        "**/.config/mise/{mise,config}{,.*}.toml",
+        "**/.config/mise/conf.d/*.toml",
+        "**/.rtx{,.*}.toml"
+      ],
+      "groupName": "Mise updates",
       "addLabels": [
         "mise"
       ]
