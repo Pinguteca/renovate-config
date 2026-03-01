@@ -1,3 +1,4 @@
 [tools]
 "aqua:cocogitto" = "6.5.0" # renovate: depName=cocogitto/cocogitto
 "aqua:prek" = "0.3.4" # renovate: depName=j178/prek
+cocogitto = "6.5.0"
