@@ -8,6 +8,24 @@
       "addLabels": [
         "mise"
       ]
+    },
+    {
+      "matchDepNames": [
+        "cocogitto"
+      ],
+      "matchPackageNames": "cocogitto/cocogitto"
+    },
+    {
+      "matchDepNames": [
+        "marksman"
+      ],
+      "matchPackageNames": "artempyanykh/marksman"
+    },
+    {
+      "matchDepNames": [
+        "prek"
+      ],
+      "matchPackageNames": "j178/prek"
     }
   ]
 }
