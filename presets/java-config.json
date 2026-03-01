@@ -1,0 +1,13 @@
+{
+  "packageRules": [
+    {
+      "matchCategories": [
+        "java"
+      ],
+      "groupName": "Java updates",
+      "addLabels": [
+        "java"
+      ]
+    }
+  ]
+}
