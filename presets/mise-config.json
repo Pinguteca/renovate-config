@@ -13,7 +13,8 @@
       "matchStrings": [
         "\"?(?:aqua:)?(?<depName>[\\w-]+)\"?\\s*=\\s*\"(?<currentValue>[^ \"]+)\"\\s*#\\s*renovate:\\s*github=(?<packageName>[\\w-]+\\/[\\w-]+)"
       ],
-      "datasourceTemplate": "github-releases"
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "loose"
     }
   ],
   "packageRules": [
