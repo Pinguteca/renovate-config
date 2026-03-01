@@ -10,18 +10,27 @@
       ]
     },
     {
+      "matchDatasources": [
+        "github-releases"
+      ],
       "matchDepNames": [
         "cocogitto"
       ],
       "matchPackageNames": "cocogitto/cocogitto"
     },
     {
+      "matchDatasources": [
+        "github-releases"
+      ],
       "matchDepNames": [
         "marksman"
       ],
       "matchPackageNames": "artempyanykh/marksman"
     },
     {
+      "matchDatasources": [
+        "github-releases"
+      ],
       "matchDepNames": [
         "prek"
       ],
