@@ -1,0 +1,13 @@
+{
+  "packageRules": [
+    {
+      "matchCategories": [
+        "js"
+      ],
+      "groupName": "JavaScript updates",
+      "addLabels": [
+        "javascript"
+      ]
+    }
+  ]
+}
