@@ -8,6 +8,16 @@
       "addLabels": [
         "python"
       ]
+    },
+    {
+      "matchManagers": [
+        "copier"
+      ],
+      "groupName": "Copier updates",
+      "addLabels": [
+        "python",
+        "copier"
+      ]
     }
   ]
 }
