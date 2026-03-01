@@ -68,13 +68,15 @@
         "pin",
         "digest"
       ],
-      "automerge": true
+      "automerge": true,
+      "draftPR": false
     },
     {
       "matchDepTypes": [
         "devDependencies"
       ],
-      "automerge": true
+      "automerge": true,
+      "draftPR": false
     }
   ]
 }
