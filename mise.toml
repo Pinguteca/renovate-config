@@ -1,4 +1,4 @@
 [tools]
-cocogitto = "6.5.0"
-marksman = "2026-01-28"
-prek = "0.3.4"
+cocogitto = "6.5.0"   # renovate: github=cocogitto/cocogitto
+marksman = "2026-01-28"   # renovate: github=artempyanykh/marksman
+prek = "0.3.4"    # renovate: github=j178/prek

@@ -1,40 +1,30 @@
 {
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "**/{,.}mise{,.*}.toml",
+        "**/{,.}mise/config{,.*}.toml",
+        "**/.config/mise{,.*}.toml",
+        "**/.config/mise/{mise,config}{,.*}.toml",
+        "**/.config/mise/conf.d/*.toml",
+        "**/.rtx{,.*}.toml"
+      ],
+      "matchStrings": [
+        "\"?(?:aqua:)?(?<depName>[\\w-]+)\"?\\s*=\\s*\"(?<currentValue>[^ \"]+)\"\\s*#\\s*renovate:\\s*github=(?<packageName>[\\w-]+\\/[\\w-]+)"
+      ],
+      "datasourceTemplate": "github-releases"
+    }
+  ],
   "packageRules": [
     {
       "matchManagers": [
         "mise"
       ],
-      "groupName": "Mise updates",
+      "groupName": "Mise core updates",
       "addLabels": [
         "mise"
       ]
-    },
-    {
-      "matchDatasources": [
-        "github-releases"
-      ],
-      "matchDepNames": [
-        "cocogitto"
-      ],
-      "matchPackageNames": "cocogitto/cocogitto"
-    },
-    {
-      "matchDatasources": [
-        "github-releases"
-      ],
-      "matchDepNames": [
-        "marksman"
-      ],
-      "matchPackageNames": "artempyanykh/marksman"
-    },
-    {
-      "matchDatasources": [
-        "github-releases"
-      ],
-      "matchDepNames": [
-        "prek"
-      ],
-      "matchPackageNames": "j178/prek"
     }
   ]
 }
