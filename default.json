@@ -12,7 +12,8 @@
     "github>Pinguteca/renovate-config//presets/mise-config",
     "github>Pinguteca/renovate-config//presets/dotnet-config",
     "github>Pinguteca/renovate-config//presets/go-config",
-    "github>Pinguteca/renovate-config//presets/python-config"
+    "github>Pinguteca/renovate-config//presets/python-config",
+    "github>Pinguteca/renovate-config//presets/javascript-config"
   ],
   "timezone": "Europe/Madrid",
   "semanticCommits": "enabled",
