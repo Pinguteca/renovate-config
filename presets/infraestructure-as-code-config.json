@@ -1,0 +1,32 @@
+{
+  "packageRules": [
+    {
+      "matchCategories": [
+        "terraform"
+      ],
+      "groupName": "Terraform/OpenTofu updates",
+      "addLabels": [
+        "terraform",
+        "opentofu"
+      ]
+    },
+    {
+      "matchManagers": [
+        "crossplane"
+      ],
+      "groupName": "Crossplane updates",
+      "addLabels": [
+        "crossplane"
+      ]
+    },
+    {
+      "matchManagers": [
+        "bicep"
+      ],
+      "groupName": "Bicep updates",
+      "addLabels": [
+        "bicep"
+      ]
+    }
+  ]
+}
