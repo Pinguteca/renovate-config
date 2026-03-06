@@ -16,7 +16,8 @@
     "github>Pinguteca/renovate-config//presets/javascript-config",
     "github>Pinguteca/renovate-config//presets/java-config",
     "github>Pinguteca/renovate-config//presets/infraestructure-as-code-config",
-    "github>Pinguteca/renovate-config//presets/configuration-as-code-config"
+    "github>Pinguteca/renovate-config//presets/configuration-as-code-config",
+    "github>Pinguteca/renovate-config//presets/nix-config"
   ],
   "timezone": "Europe/Madrid",
   "semanticCommits": "enabled",

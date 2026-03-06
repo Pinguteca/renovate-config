@@ -1,0 +1,16 @@
+{
+  "nix": {
+    "enabled": true
+  },
+  "packageRules": [
+    {
+      "matchManagers": [
+        "nix"
+      ],
+      "groupName": "Nix updates",
+      "addLabels": [
+        "nix"
+      ]
+    }
+  ]
+}
