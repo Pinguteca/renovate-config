@@ -1,0 +1,23 @@
+{
+  "packageRules": [
+    {
+      "matchManagers": [
+        "ansible",
+        "ansible-galaxy"
+      ],
+      "groupName": "Ansible updates",
+      "addLabels": [
+        "ansible"
+      ]
+    },
+    {
+      "matchManagers": [
+        "puppet"
+      ],
+      "groupName": "Puppet updates",
+      "addLabels": [
+        "puppet"
+      ]
+    }
+  ]
+}
