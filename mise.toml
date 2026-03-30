@@ -2,4 +2,4 @@
 cocogitto = "6.5.0"   # renovate: github=cocogitto/cocogitto
 gh = "2.87.3"    # renovate: github=cli/cli
 marksman = "2026-02-08"   # renovate: github=artempyanykh/marksman
-prek = "v0.3.4"   # renovate: github=j178/prek
+prek = "v0.3.5"   # renovate: github=j178/prek
