@@ -12,6 +12,13 @@
       "addLabels": [
         "github-action"
       ]
+    },
+    {
+      "matchDepNames": [
+        "slsa-framework/slsa-github-generator",
+        "/^slsa-framework\\/slsa-github-generator\\//"
+      ],
+      "pinDigests": false
     }
   ]
 }
