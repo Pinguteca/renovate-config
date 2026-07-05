@@ -3,7 +3,7 @@
     {
       "customType": "regex",
       "managerFilePatterns": ["/(^|/)go\\.work$/"],
-      "matchStrings": ["\\sgo (?<currentValue>\\d+\\.\\d+(\\.\\d+)?)\\s"],
+      "matchStrings": ["(^|\\n)go (?<currentValue>\\d+\\.\\d+(\\.\\d+)?)\\n"],
       "datasourceTemplate": "golang-version",
       "depNameTemplate": "go"
     }
