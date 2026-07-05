@@ -1,8 +1,18 @@
 {
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/(^|/)go\\.work$/"],
+      "matchStrings": ["\\sgo (?<currentValue>\\d+\\.\\d+(\\.\\d+)?)\\s"],
+      "datasourceTemplate": "golang-version",
+      "depNameTemplate": "go"
+    }
+  ],
   "packageRules": [
     {
       "matchManagers": [
-        "gomod"
+        "gomod",
+        "custom.regex"
       ],
       "groupName": "Go updates",
       "addLabels": [
