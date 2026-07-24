@@ -1,5 +1,5 @@
 [tools]
 cocogitto = "7.0.0"   # renovate: github=cocogitto/cocogitto
-gh = "2.95.0"    # renovate: github=cli/cli
+gh = "2.96.0"    # renovate: github=cli/cli
 marksman = "2026-02-08"   # renovate: github=artempyanykh/marksman
 prek = "v0.4.6"   # renovate: github=j178/prek
