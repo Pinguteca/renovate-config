@@ -59,7 +59,7 @@
     "automerge": true
   },
   "internalChecksFilter": "strict",
-  "rangeStrategy": "bump",
+  "rangeStrategy": "auto",
   "separateMinorPatch": false,
   "separateMajorMinor": true,
   "separateMultipleMajor": true,
