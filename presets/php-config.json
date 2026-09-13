@@ -1,0 +1,28 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Label and group PHP ecosystem updates, keeping majors in their own PR",
+  "packageRules": [
+    {
+      "description": "Label all PHP updates",
+      "matchCategories": [
+        "php"
+      ],
+      "addLabels": [
+        "php"
+      ]
+    },
+    {
+      "description": "Group non-major PHP updates into a single PR",
+      "matchCategories": [
+        "php"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": "PHP updates"
+    }
+  ]
+}
