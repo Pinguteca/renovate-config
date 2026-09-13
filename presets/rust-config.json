@@ -1,0 +1,28 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Label and group Rust ecosystem updates, keeping majors in their own PR",
+  "packageRules": [
+    {
+      "description": "Label all Rust updates",
+      "matchCategories": [
+        "rust"
+      ],
+      "addLabels": [
+        "rust"
+      ]
+    },
+    {
+      "description": "Group non-major Rust updates into a single PR",
+      "matchCategories": [
+        "rust"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": "Rust updates"
+    }
+  ]
+}
