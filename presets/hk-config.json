@@ -1,0 +1,32 @@
+{
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^hk\\.pkl$/"
+      ],
+      "matchStrings": [
+        "hk@(?<currentValue>\\d+\\.\\d+\\.\\d+)#"
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "jdx/hk"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchManagers": [
+        "mise",
+        "custom.regex"
+      ],
+      "matchDepNames": [
+        "jdx/hk",
+        "hk"
+      ],
+      "description": "Bump the hk tool and the hk.pkl Pkl package in one PR so they stay in sync",
+      "groupName": "hk updates",
+      "addLabels": [
+        "hk"
+      ]
+    }
+  ]
+}
