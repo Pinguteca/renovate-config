@@ -1,38 +1,11 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Track mise tool versions, including entries annotated with a renovate github= comment, then label and group them",
-  "customManagers": [
-    {
-      "customType": "regex",
-      "managerFilePatterns": [
-        "**/{,.}mise{,.*}.toml",
-        "**/{,.}mise/config{,.*}.toml",
-        "**/.config/mise{,.*}.toml",
-        "**/.config/mise/{mise,config}{,.*}.toml",
-        "**/.config/mise/conf.d/*.toml",
-        "**/.rtx{,.*}.toml"
-      ],
-      "matchStrings": [
-        "\"?(?:aqua:)?(?<depName>[\\w-]+)\"?\\s*=\\s*\"(?<currentValue>[^ \"]+)\"\\s*#\\s*renovate:\\s*github=(?<packageName>[\\w-]+\\/[\\w-]+)"
-      ],
-      "datasourceTemplate": "github-releases",
-      "versioningTemplate": "loose"
-    }
-  ],
+  "description": "Label and group mise tool updates, keeping majors in their own PR. Uses the native mise manager, which resolves registry short names and backend prefixes such as aqua: and also maintains mise.lock",
   "packageRules": [
     {
       "description": "Label all mise tool updates",
       "matchManagers": [
-        "mise",
-        "custom.regex"
-      ],
-      "matchFileNames": [
-        "**/{,.}mise{,.*}.toml",
-        "**/{,.}mise/config{,.*}.toml",
-        "**/.config/mise{,.*}.toml",
-        "**/.config/mise/{mise,config}{,.*}.toml",
-        "**/.config/mise/conf.d/*.toml",
-        "**/.rtx{,.*}.toml"
+        "mise"
       ],
       "addLabels": [
         "mise"
@@ -41,16 +14,7 @@
     {
       "description": "Group non-major mise tool updates into a single PR",
       "matchManagers": [
-        "mise",
-        "custom.regex"
-      ],
-      "matchFileNames": [
-        "**/{,.}mise{,.*}.toml",
-        "**/{,.}mise/config{,.*}.toml",
-        "**/.config/mise{,.*}.toml",
-        "**/.config/mise/{mise,config}{,.*}.toml",
-        "**/.config/mise/conf.d/*.toml",
-        "**/.rtx{,.*}.toml"
+        "mise"
       ],
       "matchUpdateTypes": [
         "minor",
