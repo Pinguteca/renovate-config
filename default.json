@@ -16,6 +16,7 @@
     "github>Pinguteca/renovate-config//presets/javascript-config",
     "github>Pinguteca/renovate-config//presets/java-config",
     "github>Pinguteca/renovate-config//presets/infrastructure-as-code-config",
+    "github>Pinguteca/renovate-config//presets/kubernetes-config",
     "github>Pinguteca/renovate-config//presets/configuration-as-code-config",
     "github>Pinguteca/renovate-config//presets/nix-config",
     "github>Pinguteca/renovate-config//presets/hk-config"

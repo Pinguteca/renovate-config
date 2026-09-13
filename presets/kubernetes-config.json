@@ -1,0 +1,66 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Label and group Kubernetes, Helm and GitOps updates. Charts and the images they ship are grouped together, because a chart upgrade usually expects a matching image. Extend this preset after container-config so its grouping wins for images declared in Kubernetes manifests",
+  "packageRules": [
+    {
+      "description": "Label all Kubernetes, Helm and GitOps updates",
+      "matchManagers": [
+        "argocd",
+        "fleet",
+        "flux",
+        "helm-requirements",
+        "helm-values",
+        "helmfile",
+        "helmv3",
+        "kubernetes",
+        "kustomize",
+        "vendir"
+      ],
+      "addLabels": [
+        "kubernetes"
+      ]
+    },
+    {
+      "description": "Additionally label Helm chart updates wherever they are declared",
+      "matchDatasources": [
+        "helm"
+      ],
+      "addLabels": [
+        "helm"
+      ]
+    },
+    {
+      "description": "Group non-major charts and images into one PR so a chart and the image it ships move together",
+      "matchManagers": [
+        "argocd",
+        "fleet",
+        "flux",
+        "helm-requirements",
+        "helm-values",
+        "helmfile",
+        "helmv3",
+        "kubernetes",
+        "kustomize",
+        "vendir"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": "Kubernetes/Helm updates"
+    },
+    {
+      "description": "Deprecated Kubernetes API versions are a manual migration, never a group member",
+      "matchDatasources": [
+        "kubernetes-api"
+      ],
+      "groupName": null,
+      "addLabels": [
+        "kubernetes",
+        "kubernetes-api"
+      ]
+    }
+  ]
+}

@@ -1,22 +1,18 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Label and group container image updates, keeping majors in their own PR",
+  "description": "Label every container image wherever it is declared, and group the ones declared in container-native files. Images inside Kubernetes manifests keep this label but are regrouped by kubernetes-config",
   "packageRules": [
     {
-      "description": "Label all container image updates",
-      "matchManagers": [
-        "dockerfile",
-        "docker-compose",
-        "quadlet",
-        "devcontainer",
-        "buildpacks"
+      "description": "Label every container image, whatever manager declares it",
+      "matchDatasources": [
+        "docker"
       ],
       "addLabels": [
         "container"
       ]
     },
     {
-      "description": "Group non-major container image updates into a single PR",
+      "description": "Group non-major images declared in container-native files into a single PR",
       "matchManagers": [
         "dockerfile",
         "docker-compose",
