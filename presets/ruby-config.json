@@ -1,0 +1,28 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Label and group Ruby ecosystem updates, keeping majors in their own PR",
+  "packageRules": [
+    {
+      "description": "Label all Ruby updates",
+      "matchCategories": [
+        "ruby"
+      ],
+      "addLabels": [
+        "ruby"
+      ]
+    },
+    {
+      "description": "Group non-major Ruby updates into a single PR",
+      "matchCategories": [
+        "ruby"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": "Ruby updates"
+    }
+  ]
+}
