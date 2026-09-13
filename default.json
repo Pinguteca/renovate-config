@@ -1,5 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": [
+    "Shared Renovate defaults for the Pinguteca organization.",
+    "Options that merely restate a Renovate default are set explicitly on purpose, so that a default changing upstream shows up as a diff here rather than as silent behaviour drift.",
+    "Preset order matters: container-config must precede kubernetes-config so Kubernetes regroups images, and hk-config must stay last so its grouping overrides mise-config for hk dependencies."
+  ],
   "extends": [
     "config:best-practices",
     "mergeConfidence:all-badges",
@@ -24,31 +29,31 @@
     "github>Pinguteca/renovate-config//presets/nix-config",
     "github>Pinguteca/renovate-config//presets/hk-config"
   ],
+
   "timezone": "Europe/Madrid",
   "semanticCommits": "enabled",
-  "draftPR": true,
-  "automerge": false,
+  "branchPrefix": "renovate/",
+  "branchNameStrict": true,
   "labels": [
     "renovate"
   ],
   "stopUpdatingLabel": "have-a-break-renovate",
-  "branchPrefix": "renovate/",
-  "branchNameStrict": true,
-  "rebaseWhen": "auto",
+
+  "draftPR": true,
   "prCreation": "immediate",
+  "rebaseWhen": "auto",
+  "automerge": false,
   "prBodyNotes": [
     "{{#if isMajor}}:warning: MAJOR UPDATE, may require additional runtime testing to ensure compatibility. :warning:{{/if}}"
   ],
-  "pin": {
-    "commitBody": "[skip ci]",
-    "automerge": true
-  },
-  "hostRules": [
-    {
-      "enableHttp2": true
-    }
-  ],
+
+  "rangeStrategy": "auto",
+  "separateMajorMinor": true,
+  "separateMinorPatch": false,
+  "separateMultipleMajor": true,
   "minimumReleaseAge": "7 days",
+  "internalChecksFilter": "strict",
+
   "osvVulnerabilityAlerts": true,
   "dependencyDashboardOSVVulnerabilitySummary": "unresolved",
   "vulnerabilityAlerts": {
@@ -59,22 +64,30 @@
     "draftPR": false,
     "automerge": true
   },
+
+  "pin": {
+    "commitBody": "[skip ci]",
+    "automerge": true
+  },
   "lockFileMaintenance": {
     "enabled": true,
     "draftPR": false,
     "automerge": true
   },
-  "internalChecksFilter": "strict",
-  "rangeStrategy": "auto",
-  "separateMinorPatch": false,
-  "separateMajorMinor": true,
-  "separateMultipleMajor": true,
+
+  "hostRules": [
+    {
+      "enableHttp2": true
+    }
+  ],
   "gitIgnoredAuthors": [
     "github-actions[bot]@users.noreply.github.com",
     "41898282+github-actions[bot]@users.noreply.github.com"
   ],
+
   "packageRules": [
     {
+      "description": "Automerge low-risk update types, which cannot be draft PRs because GitHub refuses to merge drafts",
       "matchUpdateTypes": [
         "minor",
         "patch",
@@ -85,6 +98,7 @@
       "draftPR": false
     },
     {
+      "description": "Automerge development dependencies, which cannot be draft PRs because GitHub refuses to merge drafts",
       "matchDepTypes": [
         "devDependencies"
       ],
