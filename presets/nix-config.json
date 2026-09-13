@@ -6,13 +6,26 @@
   },
   "packageRules": [
     {
+      "description": "Label all Nix updates",
       "matchManagers": [
         "nix"
       ],
-      "groupName": "Nix updates",
       "addLabels": [
         "nix"
       ]
+    },
+    {
+      "description": "Group non-major Nix updates into a single PR",
+      "matchManagers": [
+        "nix"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": "Nix updates"
     }
   ]
 }

@@ -6,16 +6,30 @@
   ],
   "packageRules": [
     {
+      "description": "Label all GitHub Actions updates",
       "matchManagers": [
         "github-actions"
       ],
-      "groupName": "GitHub Actions updates",
-      "automergeType": "branch",
       "addLabels": [
         "github-action"
       ]
     },
     {
+      "description": "Group non-major GitHub Actions updates into a single PR",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": "GitHub Actions updates",
+      "automergeType": "branch"
+    },
+    {
+      "description": "SLSA generators must stay on a tag, as the reusable workflow refuses to run from a digest",
       "matchDepNames": [
         "slsa-framework/slsa-github-generator",
         "/^slsa-framework\\/slsa-github-generator\\//"

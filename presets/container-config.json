@@ -1,8 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Label and group container image updates",
+  "description": "Label and group container image updates, keeping majors in their own PR",
   "packageRules": [
     {
+      "description": "Label all container image updates",
       "matchManagers": [
         "dockerfile",
         "docker-compose",
@@ -10,10 +11,26 @@
         "devcontainer",
         "buildpacks"
       ],
-      "groupName": "Container image updates",
       "addLabels": [
         "container"
       ]
+    },
+    {
+      "description": "Group non-major container image updates into a single PR",
+      "matchManagers": [
+        "dockerfile",
+        "docker-compose",
+        "quadlet",
+        "devcontainer",
+        "buildpacks"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": "Container image updates"
     }
   ]
 }

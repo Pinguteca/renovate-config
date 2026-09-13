@@ -1,15 +1,28 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Label and group JavaScript ecosystem updates",
+  "description": "Label and group JavaScript ecosystem updates, keeping majors in their own PR",
   "packageRules": [
     {
+      "description": "Label all JavaScript updates",
       "matchCategories": [
         "js"
       ],
-      "groupName": "JavaScript updates",
       "addLabels": [
         "javascript"
       ]
+    },
+    {
+      "description": "Group non-major JavaScript updates into a single PR",
+      "matchCategories": [
+        "js"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": "JavaScript updates"
     }
   ]
 }

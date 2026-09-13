@@ -1,25 +1,51 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Label and group Python ecosystem updates",
+  "description": "Label and group Python ecosystem updates, keeping majors in their own PR",
   "packageRules": [
     {
+      "description": "Label all Python updates",
       "matchCategories": [
         "python"
       ],
-      "groupName": "Python updates",
       "addLabels": [
         "python"
       ]
     },
     {
+      "description": "Group non-major Python updates into a single PR",
+      "matchCategories": [
+        "python"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": "Python updates"
+    },
+    {
+      "description": "Label all Copier template updates",
       "matchManagers": [
         "copier"
       ],
-      "groupName": "Copier updates",
       "addLabels": [
         "python",
         "copier"
       ]
+    },
+    {
+      "description": "Group non-major Copier template updates into a single PR",
+      "matchManagers": [
+        "copier"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": "Copier updates"
     }
   ]
 }

@@ -3,6 +3,7 @@
   "description": "Label and group Go ecosystem updates, including the go directive in go.work",
   "customManagers": [
     {
+      "description": "Track the go directive in go.work, which the gomod manager does not read",
       "customType": "regex",
       "managerFilePatterns": [
         "/(^|/)go\\.work$/"
@@ -16,6 +17,7 @@
   ],
   "packageRules": [
     {
+      "description": "Label all Go updates. Scoped by file so the custom.regex match cannot capture other presets' custom managers",
       "matchManagers": [
         "gomod",
         "custom.regex"
@@ -24,10 +26,27 @@
         "**/go.mod",
         "**/go.work"
       ],
-      "groupName": "Go updates",
       "addLabels": [
         "go"
       ]
+    },
+    {
+      "description": "Group non-major Go updates into a single PR",
+      "matchManagers": [
+        "gomod",
+        "custom.regex"
+      ],
+      "matchFileNames": [
+        "**/go.mod",
+        "**/go.work"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": "Go updates"
     }
   ],
   "postUpdateOptions": [

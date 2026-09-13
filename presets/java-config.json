@@ -1,15 +1,28 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Label and group Java ecosystem updates",
+  "description": "Label and group Java ecosystem updates, keeping majors in their own PR",
   "packageRules": [
     {
+      "description": "Label all Java updates",
       "matchCategories": [
         "java"
       ],
-      "groupName": "Java updates",
       "addLabels": [
         "java"
       ]
+    },
+    {
+      "description": "Group non-major Java updates into a single PR",
+      "matchCategories": [
+        "java"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": "Java updates"
     }
   ]
 }

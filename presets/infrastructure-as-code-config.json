@@ -1,34 +1,73 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Label and group infrastructure-as-code updates",
+  "description": "Label and group infrastructure-as-code updates, keeping majors in their own PR",
   "packageRules": [
     {
+      "description": "Label all Terraform and OpenTofu updates",
       "matchCategories": [
         "terraform"
       ],
-      "groupName": "Terraform/OpenTofu updates",
       "addLabels": [
         "terraform",
         "opentofu"
       ]
     },
     {
+      "description": "Group non-major Terraform and OpenTofu updates into a single PR",
+      "matchCategories": [
+        "terraform"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": "Terraform/OpenTofu updates"
+    },
+    {
+      "description": "Label all Crossplane updates",
       "matchManagers": [
         "crossplane"
       ],
-      "groupName": "Crossplane updates",
       "addLabels": [
         "crossplane"
       ]
     },
     {
+      "description": "Group non-major Crossplane updates into a single PR",
+      "matchManagers": [
+        "crossplane"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": "Crossplane updates"
+    },
+    {
+      "description": "Label all Bicep updates",
       "matchManagers": [
         "bicep"
       ],
-      "groupName": "Bicep updates",
       "addLabels": [
         "bicep"
       ]
+    },
+    {
+      "description": "Group non-major Bicep updates into a single PR",
+      "matchManagers": [
+        "bicep"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": "Bicep updates"
     }
   ]
 }

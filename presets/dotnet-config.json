@@ -1,16 +1,29 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Label and group .NET ecosystem updates",
+  "description": "Label and group .NET ecosystem updates, keeping majors in their own PR",
   "packageRules": [
     {
+      "description": "Label all .NET updates",
       "matchManagers": [
         "nuget"
       ],
-      "groupName": ".NET updates",
       "addLabels": [
         "dotnet",
         "nuget"
       ]
+    },
+    {
+      "description": "Group non-major .NET updates into a single PR",
+      "matchManagers": [
+        "nuget"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": ".NET updates"
     }
   ]
 }

@@ -3,6 +3,7 @@
   "description": "Track the hk tool and the hk.pkl Pkl package together. Extend this preset after mise-config so its grouping wins for hk dependencies",
   "customManagers": [
     {
+      "description": "Track the hk Pkl package pinned inside hk.pkl",
       "customType": "regex",
       "managerFilePatterns": [
         "/^hk\\.pkl$/"
@@ -16,6 +17,7 @@
   ],
   "packageRules": [
     {
+      "description": "Bump the hk tool and the hk.pkl Pkl package in one PR so they stay in sync, majors included",
       "matchManagers": [
         "mise",
         "custom.regex"
@@ -24,7 +26,6 @@
         "jdx/hk",
         "hk"
       ],
-      "description": "Bump the hk tool and the hk.pkl Pkl package in one PR so they stay in sync",
       "groupName": "hk updates",
       "addLabels": [
         "hk"

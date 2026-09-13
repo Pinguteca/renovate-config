@@ -6,13 +6,26 @@
   },
   "packageRules": [
     {
+      "description": "Label all pre-commit updates",
       "matchManagers": [
         "pre-commit"
       ],
-      "groupName": "Pre-commit updates",
       "addLabels": [
         "pre-commit"
       ]
+    },
+    {
+      "description": "Group non-major pre-commit updates into a single PR",
+      "matchManagers": [
+        "pre-commit"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": "Pre-commit updates"
     }
   ]
 }

@@ -1,25 +1,52 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Label and group configuration-as-code updates",
+  "description": "Label and group configuration-as-code updates, keeping majors in their own PR",
   "packageRules": [
     {
+      "description": "Label all Ansible updates",
       "matchManagers": [
         "ansible",
         "ansible-galaxy"
       ],
-      "groupName": "Ansible updates",
       "addLabels": [
         "ansible"
       ]
     },
     {
+      "description": "Group non-major Ansible updates into a single PR",
+      "matchManagers": [
+        "ansible",
+        "ansible-galaxy"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": "Ansible updates"
+    },
+    {
+      "description": "Label all Puppet updates",
       "matchManagers": [
         "puppet"
       ],
-      "groupName": "Puppet updates",
       "addLabels": [
         "puppet"
       ]
+    },
+    {
+      "description": "Group non-major Puppet updates into a single PR",
+      "matchManagers": [
+        "puppet"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": "Puppet updates"
     }
   ]
 }

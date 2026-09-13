@@ -21,6 +21,7 @@
   ],
   "packageRules": [
     {
+      "description": "Label all mise tool updates",
       "matchManagers": [
         "mise",
         "custom.regex"
@@ -33,10 +34,31 @@
         "**/.config/mise/conf.d/*.toml",
         "**/.rtx{,.*}.toml"
       ],
-      "groupName": "Mise updates",
       "addLabels": [
         "mise"
       ]
+    },
+    {
+      "description": "Group non-major mise tool updates into a single PR",
+      "matchManagers": [
+        "mise",
+        "custom.regex"
+      ],
+      "matchFileNames": [
+        "**/{,.}mise{,.*}.toml",
+        "**/{,.}mise/config{,.*}.toml",
+        "**/.config/mise{,.*}.toml",
+        "**/.config/mise/{mise,config}{,.*}.toml",
+        "**/.config/mise/conf.d/*.toml",
+        "**/.rtx{,.*}.toml"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": "Mise updates"
     }
   ]
 }
