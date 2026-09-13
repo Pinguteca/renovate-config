@@ -50,10 +50,12 @@
     "labels": [
       "security"
     ],
+    "draftPR": false,
     "automerge": true
   },
   "lockFileMaintenance": {
     "enabled": true,
+    "draftPR": false,
     "automerge": true
   },
   "internalChecksFilter": "strict",
