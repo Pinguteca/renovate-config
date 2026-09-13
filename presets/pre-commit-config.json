@@ -31,7 +31,8 @@
         "**/prek.toml"
       ],
       "addLabels": [
-        "pre-commit"
+        "pre-commit",
+        "git-hooks"
       ]
     },
     {
@@ -52,6 +53,19 @@
         "pin"
       ],
       "groupName": "Pre-commit updates"
+    },
+    {
+      "description": "Label the prek runner itself when it is installed as a mise tool",
+      "matchManagers": [
+        "mise"
+      ],
+      "matchDepNames": [
+        "prek"
+      ],
+      "addLabels": [
+        "pre-commit",
+        "git-hooks"
+      ]
     }
   ]
 }

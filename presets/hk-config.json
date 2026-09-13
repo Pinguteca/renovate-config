@@ -28,7 +28,8 @@
       ],
       "groupName": "hk updates",
       "addLabels": [
-        "hk"
+        "hk",
+        "git-hooks"
       ]
     }
   ]
