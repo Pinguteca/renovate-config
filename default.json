@@ -44,7 +44,7 @@
       "enableHttp2": true
     }
   ],
-  "minimumReleaseAge": "21 days",
+  "minimumReleaseAge": "7 days",
   "vulnerabilityAlerts": {
     "vulnerabilityFixStrategy": "lowest",
     "labels": [

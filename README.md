@@ -27,7 +27,7 @@ The main Renovate configuration file that extends Renovate's best practices pres
 
 **Update Strategy:**
 
-- Maintains a 21-day minimum release age before updating
+- Maintains a 7-day minimum release age before updating
 - Uses `bump` range strategy for version constraints
 - Does not separate minor/patch updates
 - Separate major updates into their own PRs
@@ -119,7 +119,7 @@ Commit messages follow the conventional commits format, enabling automated chang
 
 ### Minimum Release Age
 
-Waits 21 days after a package release before creating update PRs following Snyk recommendation. This reduces the risk of updating to versions with undiscovered bugs.
+Waits 7 days after a package release before creating update PRs. This reduces the risk of updating to versions with undiscovered bugs and vulnerabilities.
 
 ### Draft PRs
 
