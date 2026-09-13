@@ -1,4 +1,6 @@
 {
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Enable the Nix manager, which is off by default, then label and group its updates",
   "nix": {
     "enabled": true
   },

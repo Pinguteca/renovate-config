@@ -1,4 +1,6 @@
 {
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Label and group container image updates",
   "packageRules": [
     {
       "matchManagers": [

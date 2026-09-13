@@ -1,4 +1,6 @@
 {
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Label and group Go ecosystem updates, including the go directive in go.work",
   "customManagers": [
     {
       "customType": "regex",

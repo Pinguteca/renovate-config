@@ -1,4 +1,6 @@
 {
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Track the hk tool and the hk.pkl Pkl package together. Extend this preset after mise-config so its grouping wins for hk dependencies",
   "customManagers": [
     {
       "customType": "regex",

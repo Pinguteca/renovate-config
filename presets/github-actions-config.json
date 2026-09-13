@@ -1,4 +1,6 @@
 {
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Pin GitHub Action digests to semver, then label and group workflow updates",
   "extends": [
     "helpers:pinGitHubActionDigestsToSemver"
   ],

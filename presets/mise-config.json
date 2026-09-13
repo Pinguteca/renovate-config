@@ -1,4 +1,6 @@
 {
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Track mise tool versions, including entries annotated with a renovate github= comment, then label and group them",
   "customManagers": [
     {
       "customType": "regex",
