@@ -1,0 +1,65 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Migration helper that rewrites a pinned Azure Pipelines agent image to the floating -latest alias. Opt in per repository and stop extending it once the migration is done. Deliberately not part of default.json",
+  "customManagers": [
+    {
+      "description": "Pinned Ubuntu agent image",
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)azure-pipelines.*\\.ya?ml$/",
+        "/(^|/)\\.azure-pipelines/.+\\.ya?ml$/",
+        "/(^|/)ci/.+\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "vmImage:\\s*['\"]?ubuntu-(?<currentValue>[0-9][\\w.]*)['\"]?"
+      ],
+      "depNameTemplate": "ubuntu",
+      "datasourceTemplate": "endoflife-date",
+      "versioningTemplate": "loose"
+    },
+    {
+      "description": "Pinned Windows agent image",
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)azure-pipelines.*\\.ya?ml$/",
+        "/(^|/)\\.azure-pipelines/.+\\.ya?ml$/",
+        "/(^|/)ci/.+\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "vmImage:\\s*['\"]?windows-(?<currentValue>[0-9][\\w.]*)['\"]?"
+      ],
+      "depNameTemplate": "windows-server",
+      "datasourceTemplate": "endoflife-date",
+      "versioningTemplate": "loose"
+    },
+    {
+      "description": "Pinned macOS agent image",
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)azure-pipelines.*\\.ya?ml$/",
+        "/(^|/)\\.azure-pipelines/.+\\.ya?ml$/",
+        "/(^|/)ci/.+\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "vmImage:\\s*['\"]?macos-(?<currentValue>[0-9][\\w.]*)['\"]?"
+      ],
+      "depNameTemplate": "macos",
+      "datasourceTemplate": "endoflife-date",
+      "versioningTemplate": "loose"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Rewrite the pinned image to the floating alias. Microsoft moves -latest only once the agent image actually exists, which is the availability signal Renovate has no other way to observe",
+      "matchDepNames": [
+        "ubuntu",
+        "windows-server",
+        "macos"
+      ],
+      "replacementVersion": "latest",
+      "addLabels": [
+        "azure-pipelines"
+      ]
+    }
+  ]
+}
