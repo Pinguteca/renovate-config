@@ -1,0 +1,5 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Azure DevOps platform settings. Every option here is ignored on other platforms, so this preset is safe to extend from a shared default",
+  "azureWorkItemType": "Task"
+}
