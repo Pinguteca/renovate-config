@@ -73,6 +73,9 @@ Each file is an independently extendable preset. Every one of them follows the s
 | `infrastructure-as-code-config` | Terraform, OpenTofu, Crossplane, Bicep | per tool |
 | `configuration-as-code-config` | Ansible, Ansible Galaxy, Puppet | per tool |
 | `github-actions-config` | GitHub Actions, pinned to digests with a semver comment | GitHub Actions updates |
+| `azure-pipelines-config` | Azure Pipelines tasks, `resources.containers` images, `resources.repositories` tags | Azure Pipelines updates |
+| `azure-devops-config` | Azure DevOps platform settings, ignored elsewhere | n/a |
+| `azure-pipelines-agent-latest` | Opt-in migration of pinned `vmImage` to `-latest`, not in `default.json` | n/a |
 | `mise-config` | Tool versions in `mise.toml` and friends | Mise updates |
 | `hk-config` | The `hk` tool and the `hk.pkl` Pkl package, kept in sync | hk updates |
 | `pre-commit-config` | `.pre-commit-config.yaml` hooks, plus `prek.toml` via a stopgap custom manager | Pre-commit updates |
@@ -91,6 +94,33 @@ Each file is an independently extendable preset. Every one of them follows the s
 >
 > - `container-config` must come **before** `kubernetes-config`, so images declared in Kubernetes manifests keep the `container` label but are regrouped alongside the chart that ships them.
 > - `hk-config` must stay **last**, so its grouping overrides `mise-config` for `hk` dependencies.
+> - `container-config` must also come **before** `azure-pipelines-config`, so images declared in a pipeline are regrouped with that pipeline.
+
+### Azure DevOps
+
+`azure-devops-config` sets `azureWorkItemType` to `Task`. Renovate has no issue concept on Azure DevOps, so it stores the Dependency Dashboard as a work item. The default type is `Issue`, which only exists in the `Basic` process; `Task` exists in `Basic`, `Agile` and `Scrum` alike.
+
+> [!WARNING]
+> Set this before Renovate's first run on a repository. Renovate keeps an existing dashboard work item when the type changes, so switching later strands the old one.
+
+`azure-pipelines-config` enables a manager that is off by default, because Renovate cannot tell whether a task version has reached your Azure DevOps instance yet. It covers YAML pipelines only: classic pipelines are defined in the Azure DevOps database rather than in the repository, so there is no file for Renovate to read.
+
+It updates pipeline tasks, images in `resources.containers`, and GitHub repository resources pinned to a tag. It does **not** update `pool.vmImage`, Azure-hosted repositories in `resources.repositories`, or the root `container:` element of a container job.
+
+File patterns are additive rather than replaced, so this preset adds `ci/` on top of the built-in `azure-pipelines.yml` and `.azure-pipelines/**` patterns.
+
+#### Agent images
+
+Prefer `ubuntu-latest`, `windows-latest` and `macos-latest` over a pinned `vmImage`. Renovate cannot maintain a pinned one, and the `-latest` alias is the only thing that tracks the signal that matters: Microsoft moves it when the image is actually available on their hosted agents.
+
+To migrate existing pinned images, extend `azure-pipelines-agent-latest`. It opens a replacement pull request rewriting `ubuntu-22.04` to `ubuntu-latest`, and leaves images already on an alias alone.
+
+> [!WARNING]
+> That preset also opens version-chasing pull requests it cannot suppress, roughly two per pinned Ubuntu or macOS image, proposing OS releases that Microsoft may not ship an agent for yet. Close them and merge only the replacement. Both stop permanently once the file no longer pins a version, since the custom manager then matches nothing. Windows is unaffected.
+
+It is a migration helper, not a standing policy, so it is deliberately left out of `default.json`. Extend it per repository and stop once the migration is done.
+
+Do not try to track agent versions instead. `endoflife-date` knows when an OS release exists, not when Microsoft ships an agent for it, and the two are months apart. It also only covers Ubuntu and macOS, returning Windows Server build numbers such as `10.0.20348.2582` rather than the `2019`/`2022`/`2025` labels a pipeline uses. Tracking `actions/runner-images` does not help either, even though Microsoft builds the hosted images there: its tags and releases are per-image builds such as `win25/20260913.261`, not the `windows-2025` labels `vmImage` accepts.
 
 Presets can also be extended individually, without `default.json`:
 
