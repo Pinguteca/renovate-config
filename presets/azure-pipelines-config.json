@@ -1,0 +1,41 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Enable the azure-pipelines manager, which is off by default, and keep task references pinned to a major version. Adds ci/ to the built-in file patterns, which are additive rather than replaced. Extend this preset after container-config so images declared in a pipeline group with that pipeline",
+  "azure-pipelines": {
+    "enabled": true,
+    "managerFilePatterns": [
+      "/(^|/)ci/.+\\.ya?ml$/"
+    ]
+  },
+  "packageRules": [
+    {
+      "description": "Azure Pipelines tasks are referenced by major version only. Without this Renovate expands UseDotNet@2 into UseDotNet@2.279.0, which is not valid task syntax and breaks the pipeline",
+      "matchDatasources": [
+        "azure-pipelines-tasks"
+      ],
+      "extractVersion": "^(?<version>\\d+)"
+    },
+    {
+      "description": "Label all Azure Pipelines updates",
+      "matchManagers": [
+        "azure-pipelines"
+      ],
+      "addLabels": [
+        "azure-pipelines"
+      ]
+    },
+    {
+      "description": "Group non-major Azure Pipelines updates into a single PR",
+      "matchManagers": [
+        "azure-pipelines"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": "Azure Pipelines updates"
+    }
+  ]
+}

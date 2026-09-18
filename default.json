@@ -26,6 +26,7 @@
     "github>Pinguteca/renovate-config//presets/infrastructure-as-code-config",
     "github>Pinguteca/renovate-config//presets/kubernetes-config",
     "github>Pinguteca/renovate-config//presets/azure-devops-config",
+    "github>Pinguteca/renovate-config//presets/azure-pipelines-config",
     "github>Pinguteca/renovate-config//presets/configuration-as-code-config",
     "github>Pinguteca/renovate-config//presets/nix-config",
     "github>Pinguteca/renovate-config//presets/hk-config"
