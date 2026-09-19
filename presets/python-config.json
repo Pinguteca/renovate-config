@@ -25,7 +25,7 @@
       "groupName": "Python updates"
     },
     {
-      "description": "Label all Copier template updates",
+      "description": "Label all Copier template updates. copier is already matched by the python category rules above, so this adds the copier label on top rather than replacing them",
       "matchManagers": [
         "copier"
       ],
@@ -35,7 +35,7 @@
       ]
     },
     {
-      "description": "Group non-major Copier template updates into a single PR",
+      "description": "Group non-major Copier template updates into a single PR. copier is itself in the python category, so this rule must stay after the category rules above in order to override their group name",
       "matchManagers": [
         "copier"
       ],
