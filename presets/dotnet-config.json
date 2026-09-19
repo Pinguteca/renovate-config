@@ -3,19 +3,27 @@
   "description": "Label and group .NET ecosystem updates, keeping majors in their own PR",
   "packageRules": [
     {
-      "description": "Label all .NET updates",
+      "description": "Label all .NET updates. Matches the category rather than the nuget manager alone, so cake and unity3d are covered too",
+      "matchCategories": [
+        "dotnet"
+      ],
+      "addLabels": [
+        "dotnet"
+      ]
+    },
+    {
+      "description": "Additionally label NuGet packages, which are the bulk of .NET updates",
       "matchManagers": [
         "nuget"
       ],
       "addLabels": [
-        "dotnet",
         "nuget"
       ]
     },
     {
       "description": "Group non-major .NET updates into a single PR",
-      "matchManagers": [
-        "nuget"
+      "matchCategories": [
+        "dotnet"
       ],
       "matchUpdateTypes": [
         "minor",
