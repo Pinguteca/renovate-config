@@ -31,7 +31,6 @@
     "github>Pinguteca/renovate-config//presets/nix-config",
     "github>Pinguteca/renovate-config//presets/hk-config"
   ],
-
   "timezone": "Europe/Madrid",
   "semanticCommits": "enabled",
   "branchPrefix": "renovate/",
@@ -40,22 +39,20 @@
     "renovate"
   ],
   "stopUpdatingLabel": "have-a-break-renovate",
-
   "draftPR": true,
   "prCreation": "immediate",
   "rebaseWhen": "auto",
   "automerge": false,
+  "platformAutomerge": false,
   "prBodyNotes": [
     "{{#if isMajor}}:warning: MAJOR UPDATE, may require additional runtime testing to ensure compatibility. :warning:{{/if}}"
   ],
-
   "rangeStrategy": "auto",
   "separateMajorMinor": true,
   "separateMinorPatch": false,
   "separateMultipleMajor": true,
   "minimumReleaseAge": "7 days",
   "internalChecksFilter": "strict",
-
   "osvVulnerabilityAlerts": true,
   "dependencyDashboardOSVVulnerabilitySummary": "unresolved",
   "vulnerabilityAlerts": {
@@ -64,9 +61,9 @@
       "security"
     ],
     "draftPR": false,
-    "automerge": true
+    "automerge": true,
+    "automergeSchedule": []
   },
-
   "pin": {
     "commitBody": "[skip ci]",
     "automerge": true
@@ -76,7 +73,6 @@
     "draftPR": false,
     "automerge": true
   },
-
   "hostRules": [
     {
       "enableHttp2": true
@@ -86,7 +82,6 @@
     "github-actions[bot]@users.noreply.github.com",
     "41898282+github-actions[bot]@users.noreply.github.com"
   ],
-
   "packageRules": [
     {
       "description": "Automerge low-risk update types, which cannot be draft PRs because GitHub refuses to merge drafts",
@@ -106,6 +101,15 @@
       ],
       "automerge": true,
       "draftPR": false
+    },
+    {
+      "description": "Pins and digest refreshes carry no changelog to read and no API surface to review, so holding them for a supervised window adds latency without adding oversight. Let them be created and merged at any time. Security fixes already clear the creation schedule via the vulnerabilityAlerts defaults",
+      "matchUpdateTypes": [
+        "pin",
+        "digest"
+      ],
+      "schedule": [],
+      "automergeSchedule": []
     }
   ]
 }
