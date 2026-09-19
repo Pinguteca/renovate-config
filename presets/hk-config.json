@@ -3,12 +3,13 @@
   "description": "Track the hk tool and the hk.pkl Pkl package together. Extend this preset after mise-config so its grouping wins for hk dependencies",
   "customManagers": [
     {
-      "description": "Track the hk Pkl package pinned inside hk.pkl",
+      "description": "Track the hk Pkl package pinned inside hk.pkl. The package URL carries the version twice, once in the release download path and once in the package coordinate, and both must agree or Pkl resolves a release asset that does not contain the requested package. Matching each occurrence separately means Renovate rewrites both, and repairs them if they have already drifted apart",
       "customType": "regex",
       "managerFilePatterns": [
         "/^hk\\.pkl$/"
       ],
       "matchStrings": [
+        "/jdx/hk/releases/download/v(?<currentValue>\\d+\\.\\d+\\.\\d+)/",
         "hk@(?<currentValue>\\d+\\.\\d+\\.\\d+)#"
       ],
       "datasourceTemplate": "github-releases",
