@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Label and group Java ecosystem updates, keeping majors in their own PR",
+  "description": "Label and group Java ecosystem updates, keeping majors in their own PR and separating the build tool and parent POM from application dependencies",
   "packageRules": [
     {
       "description": "Label all Java updates",
@@ -23,6 +23,44 @@
         "pin"
       ],
       "groupName": "Java updates"
+    },
+    {
+      "description": "Maven build plugins and Gradle plugins are build infrastructure rather than application dependencies, so group them separately",
+      "matchDepTypes": [
+        "build",
+        "plugin"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "groupName": "Java build plugin updates",
+      "addLabels": [
+        "build-plugin"
+      ]
+    },
+    {
+      "description": "A parent POM bump changes the managed version of everything it governs, so it gets its own PR rather than being grouped",
+      "matchDepTypes": [
+        "parent"
+      ],
+      "groupName": null,
+      "addLabels": [
+        "maven-parent"
+      ]
+    },
+    {
+      "description": "The Gradle and Maven wrappers pin the build tool itself, which is a toolchain change. Majors are included because the maven-wrapper manager emits both the Maven distribution and the wrapper jar, and those must move together",
+      "matchManagers": [
+        "gradle-wrapper",
+        "maven-wrapper"
+      ],
+      "groupName": "Java build tool updates",
+      "addLabels": [
+        "build-tool"
+      ]
     }
   ]
 }
