@@ -81,10 +81,10 @@ Each file is an independently extendable preset. Every one of them follows the s
 | `pre-commit-config` | `.pre-commit-config.yaml` hooks, plus `prek.toml` via a stopgap custom manager | Pre-commit updates |
 | `nix-config` | Nix flakes and packages | Nix updates |
 | `python-config` | Python packages and Copier templates | Python / Copier updates |
-| `javascript-config` | JavaScript and TypeScript packages | JavaScript updates |
+| `javascript-config` | JS/TS packages, plus Node and package-manager pins | JavaScript updates |
 | `go-config` | Go modules, plus the `go` directive in `go.work` | Go updates |
-| `java-config` | Maven, Gradle | Java updates |
-| `dotnet-config` | NuGet | .NET updates |
+| `java-config` | Maven, Gradle, their wrappers, plugins and parent POMs | Java updates |
+| `dotnet-config` | NuGet, Cake, Unity3D, plus `global.json` and `Directory.*.props` | .NET updates |
 | `rust-config` | Cargo | Rust updates |
 | `ruby-config` | Bundler, `.ruby-version` | Ruby updates |
 | `php-config` | Composer | PHP updates |
@@ -96,12 +96,48 @@ Each file is an independently extendable preset. Every one of them follows the s
 > - `hk-config` must stay **last**, so its grouping overrides `mise-config` for `hk` dependencies.
 > - `container-config` must also come **before** `azure-pipelines-config`, so images declared in a pipeline are regrouped with that pipeline.
 
+### Toolchain versus dependencies
+
+Three presets split a repository's *toolchain* away from its *dependencies*, because the two carry different risk and want different reviewers. A dependency bump is routine; a change to the compiler, runtime or build tool is not, and it should not arrive buried in a group of forty patches.
+
+The split is driven by what the managers actually emit, checked with `renovate --platform=local`, rather than by guesswork about file names.
+
+### .NET
+
+The `nuget` manager already covers more than project files: `global.json` (both the SDK pin and MSBuild SDKs), `Directory.Build.props`, and `Directory.Packages.props` for Central Package Management. No custom manager is needed for any of them.
+
+The preset separates three things that would otherwise land in one pull request:
+
+- **Runtime-aligned packages** (`Microsoft.AspNetCore.*`, `Microsoft.EntityFrameworkCore.*`, `Microsoft.Extensions.*`, `System.*`) are grouped together, majors included. These ship in lockstep with the .NET major, so a pull request that moves some to the next major and leaves the rest behind will not build.
+- **The SDK pin** in `global.json` gets its own pull request. It is a toolchain change, not a package update.
+- **MSBuild SDKs** likewise, as build infrastructure.
+
+### Java
+
+`gradle-wrapper` and `maven-wrapper` pin the build tool itself, so they share a **Java build tool updates** group. Majors are included deliberately: the `maven-wrapper` manager emits both the Maven distribution and the wrapper jar, and those two must move together.
+
+Maven build plugins (`build`) and Gradle plugins (`plugin`) group separately from application dependencies as **Java build plugin updates**.
+
+A Maven `parent` is never grouped. Bumping a parent POM changes the managed version of everything it governs, so it gets its own pull request.
+
+> [!NOTE]
+> Where a Maven version lives in a property, Renovate names the dependency after the property rather than the artifact, so expect a branch like `major-guava.version`.
+
+### JavaScript
+
+The runtime is typically pinned in more than one place at once: `engines`, `volta`, and a `.nvmrc` or `.node-version` file. The package manager is pinned in both `engines` and `packageManager`. If those drift apart the toolchain contradicts itself, so all of them share one **JavaScript toolchain updates** group and move together.
+
+Ordinary packages are unaffected and keep the normal non-major grouping.
+
 ### Azure DevOps
 
 `azure-devops-config` sets `azureWorkItemType` to `Task`. Renovate has no issue concept on Azure DevOps, so it stores the Dependency Dashboard as a work item. The default type is `Issue`, which only exists in the `Basic` process; `Task` exists in `Basic`, `Agile` and `Scrum` alike.
 
 > [!WARNING]
 > Set this before Renovate's first run on a repository. Renovate keeps an existing dashboard work item when the type changes, so switching later strands the old one.
+
+> [!TIP]
+> If a branch policy requires linked work items, Renovate pull requests cannot complete until one is linked. Set `azureWorkItemId` per repository to the id of an existing work item. It takes a specific id, so it cannot be shared from this preset.
 
 `azure-pipelines-config` enables a manager that is off by default, because Renovate cannot tell whether a task version has reached your Azure DevOps instance yet. It covers YAML pipelines only: classic pipelines are defined in the Azure DevOps database rather than in the repository, so there is no file for Renovate to read.
 
