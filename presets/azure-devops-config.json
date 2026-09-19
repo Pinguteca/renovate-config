@@ -1,5 +1,5 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Azure DevOps platform settings. Every option here is ignored on other platforms, so this preset is safe to extend from a shared default",
+  "description": "Azure DevOps platform settings. Every option here is ignored on other platforms, so this preset is safe to extend from a shared default. If a branch policy requires linked work items, also set azureWorkItemId per repository: it takes the id of an existing work item and cannot be shared from here",
   "azureWorkItemType": "Task"
 }
