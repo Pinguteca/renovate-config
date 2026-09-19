@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Label and group .NET ecosystem updates, keeping majors in their own PR",
+  "description": "Label and group .NET ecosystem updates. The nuget manager already covers global.json, Directory.Build.props and Directory.Packages.props, so no custom manager is needed",
   "packageRules": [
     {
       "description": "Label all .NET updates. Matches the category rather than the nuget manager alone, so cake and unity3d are covered too",
@@ -32,6 +32,42 @@
         "pin"
       ],
       "groupName": ".NET updates"
+    },
+    {
+      "description": "Runtime-aligned packages ship in lockstep with the .NET major, so mixing majors across them breaks the build. Group them together including majors, and keep this rule after the general group so it wins",
+      "matchManagers": [
+        "nuget"
+      ],
+      "matchPackageNames": [
+        "/^Microsoft\\.AspNetCore\\./",
+        "/^Microsoft\\.EntityFrameworkCore\\./",
+        "/^Microsoft\\.Extensions\\./",
+        "/^System\\./"
+      ],
+      "groupName": ".NET runtime packages",
+      "addLabels": [
+        "dotnet-runtime"
+      ]
+    },
+    {
+      "description": "The SDK pin in global.json is a toolchain change, so keep it out of any package group and give it its own PR",
+      "matchDepTypes": [
+        "dotnet-sdk"
+      ],
+      "groupName": null,
+      "addLabels": [
+        "dotnet-sdk"
+      ]
+    },
+    {
+      "description": "MSBuild SDKs in global.json are build infrastructure, so keep them out of the package groups too",
+      "matchDepTypes": [
+        "msbuild-sdk"
+      ],
+      "groupName": null,
+      "addLabels": [
+        "msbuild-sdk"
+      ]
     }
   ]
 }
