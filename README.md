@@ -47,7 +47,7 @@ The main Renovate configuration file. It extends Renovate's best practices prese
 
 **Security Features:**
 
-- Security vulnerability alerts automatically merged
+- Security vulnerability alerts automatically merged, at any time of day
 - Vulnerability fix strategy set to `lowest` for minimal disruption
 - Security-related PRs labeled with `security` tag
 - OSV vulnerability alerts enabled, widening coverage beyond GitHub advisories
@@ -258,6 +258,31 @@ Renovate opens PRs as drafts, so they read as not-yet-for-review while checks se
 Major updates are deliberately excluded from the ecosystem groups, so a breaking change arrives in its own PR with its own checks rather than buried among patches. Major PRs also carry a warning banner in the PR body, and are never automerged.
 
 `hk-config` is the one exception: the `hk` tool and the `hk.pkl` package must move together or the setup breaks, so that group includes majors.
+
+### Schedules
+
+Branch creation is limited to non-office hours and automerge to office hours, so that version updates land while someone is around to notice breakage.
+
+Two things are deliberately exempt, because a supervised window buys nothing for them:
+
+- **Pins and digest refreshes** have no changelog to read and no API surface to review. Holding them adds latency without adding oversight.
+- **Security fixes** clear the creation schedule through Renovate's own `vulnerabilityAlerts` defaults, and this config clears their automerge schedule too.
+
+> [!IMPORTANT]
+> `platformAutomerge` is set to `false` on purpose. When it is enabled, Renovate hands the pull request to the platform's native automerge at creation time, and as the Renovate docs put it, "the schedule specified in `automergeSchedule` cannot be followed". Leaving it at its default of `true` makes the automerge window decoration: pull requests merge whenever checks pass, including in the middle of the night.
+>
+> The cost is that merges now happen on a Renovate run rather than the instant CI goes green, so they are somewhat less immediate.
+
+### Digests and the minimum release age
+
+> [!WARNING]
+> The [minimum release age](#minimum-release-age) does **not** apply to container digest updates. Digest updates carry no release timestamp, so Renovate has nothing to age them against and lets them through immediately, even under `internalChecksFilter: "strict"`. This was verified with a dry-run: a ten-year cooldown fails to hold a digest refresh.
+
+Since digest updates are also automerged, a compromised upstream tag would be picked up and merged once CI passes, without waiting out the cooldown. Digest pinning plus digest automerge is therefore close to following the mutable tag, with the benefit that each move is a reviewable commit rather than an invisible change.
+
+This is an accepted trade-off rather than an oversight. To close it, drop `digest` from the `matchUpdateTypes` of the automerge rule in `default.json`, so digest refreshes become pull requests a person reviews. Expect real volume if you do: base images are rebuilt often, and unreviewed pull requests that pile up turn into stale images, which is its own security problem.
+
+Narrowing the exemption to a curated list of trusted registries was considered and rejected. Keeping such a list current is its own maintenance burden, and it would buy little: digest refreshes already bypass the cooldown for every registry, and those are how vendor CVE fixes ship. A list would only accelerate version bumps by seven days.
 
 ### Security Auto-merge
 
