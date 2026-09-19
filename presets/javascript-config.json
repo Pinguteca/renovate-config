@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Label and group JavaScript ecosystem updates, keeping majors in their own PR",
+  "description": "Label and group JavaScript ecosystem updates, keeping majors in their own PR and toolchain pins out of the package group",
   "packageRules": [
     {
       "description": "Label all JavaScript updates",
@@ -23,6 +23,30 @@
         "pin"
       ],
       "groupName": "JavaScript updates"
+    },
+    {
+      "description": "Runtime and package manager pins inside package.json are toolchain, not dependencies. Node is pinned in engines and volta, and the package manager in engines and packageManager, so these must move together or the toolchain disagrees with itself",
+      "matchDepTypes": [
+        "engines",
+        "volta",
+        "packageManager"
+      ],
+      "groupName": "JavaScript toolchain updates",
+      "addLabels": [
+        "toolchain"
+      ]
+    },
+    {
+      "description": "The same runtime pinned in .nvmrc, .node-version or .bun-version. Shares the toolchain group so it cannot drift from the engines and volta pins",
+      "matchManagers": [
+        "nvm",
+        "nodenv",
+        "bun-version"
+      ],
+      "groupName": "JavaScript toolchain updates",
+      "addLabels": [
+        "toolchain"
+      ]
     }
   ]
 }
