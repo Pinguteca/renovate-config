@@ -23,6 +23,21 @@
         "pin"
       ],
       "groupName": "Mise updates"
+    },
+    {
+      "description": "Resolve bare mise conda tools (conda:) through the prefix.dev conda-forge channel. The mise manager passes a bare package name, which the conda datasource cannot look up without a channel, so it fails with no result. Restricted to names without a channel: an entry such as conda:bioconda/samtools already carries its own channel and resolves unaided, and forcing a registryUrl onto it doubles the channel and breaks the lookup. Scoped to the mise manager so it cannot override the per-file channels that pixi derives from pixi.toml",
+      "matchManagers": [
+        "mise"
+      ],
+      "matchDatasources": [
+        "conda"
+      ],
+      "matchPackageNames": [
+        "/^[^\\/]+$/"
+      ],
+      "registryUrls": [
+        "https://prefix.dev/conda-forge"
+      ]
     }
   ]
 }

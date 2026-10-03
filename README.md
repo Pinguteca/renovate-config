@@ -129,6 +129,26 @@ The runtime is typically pinned in more than one place at once: `engines`, `volt
 
 Ordinary packages are unaffected and keep the normal non-major grouping.
 
+### Conda tools (mise)
+
+A mise conda tool is written with a bare package name (`conda:verapdf`), because mise rejects a channel in the name. The channel lives in a separate `channel` property and defaults to conda-forge. Renovate's mise manager passes only the bare name to the conda datasource, which cannot resolve a package without a channel and reports a `no-result` lookup failure. The preset routes bare conda names from the mise manager through the prefix.dev conda-forge channel, which indexes conda-forge and matches names case-insensitively.
+
+The rule matches only names without a slash. mise rejects a channel in the tool name, so it only ever emits a bare name, and any channel-qualified conda spec such as `bioconda/samtools` comes from pixi reading `pixi.toml` instead. Scoping the rule to the mise manager keeps it off those pixi entries, so it never forces the conda-forge registry onto a spec that already carries its own channel and doubles it.
+
+> [!NOTE]
+> The rule assumes a bare mise conda tool is a conda-forge package. A mise conda tool on another channel (set through the `channel` property, for example `channel = "bioconda"`) installs correctly, but Renovate still looks it up on conda-forge and fails. The channel property is invisible to Renovate, so this cannot be fixed in the shared preset. Add a per-repo override for that tool:
+>
+> Match on `packageName`, which is the bare name the datasource queries and the same field the preset rule matches. Matching `depName` would work too but is easier to get wrong, since it carries the `conda:` prefix (`conda:samtools`).
+>
+> ```json
+> {
+>   "matchManagers": ["mise"],
+>   "matchDatasources": ["conda"],
+>   "matchPackageNames": ["samtools"],
+>   "registryUrls": ["https://prefix.dev/bioconda"]
+> }
+> ```
+
 ### Azure DevOps
 
 `azure-devops-config` sets `azureWorkItemType` to `Task`. Renovate has no issue concept on Azure DevOps, so it stores the Dependency Dashboard as a work item. The default type is `Issue`, which only exists in the `Basic` process; `Task` exists in `Basic`, `Agile` and `Scrum` alike.
