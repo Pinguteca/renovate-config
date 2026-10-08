@@ -2,14 +2,13 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "description": [
     "Shared Renovate defaults for the Pinguteca organization.",
+    "Non-major updates automerge as soon as checks pass, with no schedule window. Breakage is caught by CI and, for deployed workloads, rolled back by the GitOps controller, so delaying merges to office hours bought latency rather than safety.",
     "Options that merely restate a Renovate default are set explicitly on purpose, so that a default changing upstream shows up as a diff here rather than as silent behaviour drift.",
     "Preset order matters: container-config must precede kubernetes-config so Kubernetes regroups images, and hk-config must stay last so its grouping overrides mise-config for hk dependencies."
   ],
   "extends": [
     "config:best-practices",
     "mergeConfidence:all-badges",
-    "schedule:automergeOfficeHours",
-    "schedule:nonOfficeHours",
     "security:openssf-scorecard",
     "github>Pinguteca/renovate-config//presets/container-config",
     "github>Pinguteca/renovate-config//presets/github-actions-config",
@@ -43,7 +42,7 @@
   "prCreation": "immediate",
   "rebaseWhen": "auto",
   "automerge": false,
-  "platformAutomerge": false,
+  "platformAutomerge": true,
   "prBodyNotes": [
     "{{#if isMajor}}:warning: MAJOR UPDATE, may require additional runtime testing to ensure compatibility. :warning:{{/if}}"
   ],
@@ -61,8 +60,7 @@
       "security"
     ],
     "draftPR": false,
-    "automerge": true,
-    "automergeSchedule": []
+    "automerge": true
   },
   "pin": {
     "commitBody": "[skip ci]",
@@ -101,15 +99,6 @@
       ],
       "automerge": true,
       "draftPR": false
-    },
-    {
-      "description": "Pins and digest refreshes carry no changelog to read and no API surface to review, so holding them for a supervised window adds latency without adding oversight. Let them be created and merged at any time. Security fixes already clear the creation schedule via the vulnerabilityAlerts defaults",
-      "matchUpdateTypes": [
-        "pin",
-        "digest"
-      ],
-      "schedule": [],
-      "automergeSchedule": []
     }
   ]
 }

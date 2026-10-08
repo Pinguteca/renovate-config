@@ -47,7 +47,7 @@ The main Renovate configuration file. It extends Renovate's best practices prese
 
 **Security Features:**
 
-- Security vulnerability alerts automatically merged, at any time of day
+- Security vulnerability alerts automatically merged
 - Vulnerability fix strategy set to `lowest` for minimal disruption
 - Security-related PRs labeled with `security` tag
 - OSV vulnerability alerts enabled, widening coverage beyond GitHub advisories
@@ -281,17 +281,19 @@ Major updates are deliberately excluded from the ecosystem groups, so a breaking
 
 ### Schedules
 
-Branch creation is limited to non-office hours and automerge to office hours, so that version updates land while someone is around to notice breakage.
+There is no schedule window. Non-major updates are created as soon as a version qualifies and merge as soon as checks pass.
 
-Two things are deliberately exempt, because a supervised window buys nothing for them:
+An office-hours merge window was tried and removed. Its premise was that an automerged update should land while someone is around to notice breakage, but nothing watches a merge happen. The real safety net is CI refusing to merge a broken change and, for deployed workloads, the GitOps controller rolling back to the previous commit. Against that, the window only added latency: a weekend pull request waited until Monday morning, on top of the seven-day [minimum release age](#minimum-release-age).
 
-- **Pins and digest refreshes** have no changelog to read and no API surface to review. Holding them adds latency without adding oversight.
-- **Security fixes** clear the creation schedule through Renovate's own `vulnerabilityAlerts` defaults, and this config clears their automerge schedule too.
-
-> [!IMPORTANT]
-> `platformAutomerge` is set to `false` on purpose. When it is enabled, Renovate hands the pull request to the platform's native automerge at creation time, and as the Renovate docs put it, "the schedule specified in `automergeSchedule` cannot be followed". Leaving it at its default of `true` makes the automerge window decoration: pull requests merge whenever checks pass, including in the middle of the night.
+> [!NOTE]
+> `platformAutomerge` is left at its default of `true`, so the platform merges the moment required checks pass rather than waiting for the next Renovate run.
 >
-> The cost is that merges now happen on a Renovate run rather than the instant CI goes green, so they are somewhat less immediate.
+> It has to be `false` for `automergeSchedule` to work at all, because Renovate hands the pull request to the platform's native automerge at creation time and, as the docs put it, "the schedule specified in `automergeSchedule` cannot be followed". If a merge window is ever reintroduced, that setting has to change with it or the window is silently decoration.
+
+Majors are unaffected: they are never automerged, so they wait for a human regardless.
+
+> [!TIP]
+> If pull request volume during working hours becomes a problem for CI capacity rather than for review, extend `schedule:nonOfficeHours` to batch branch creation into evenings and weekends. That limits when work is *created* without reintroducing a merge window, and leaves `platformAutomerge` alone.
 
 ### Digests and the minimum release age
 
