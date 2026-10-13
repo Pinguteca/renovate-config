@@ -1,6 +1,24 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Label and group .NET ecosystem updates. The nuget manager already covers global.json, Directory.Build.props and Directory.Packages.props, so no custom manager is needed",
+  "description": "Label and group .NET ecosystem updates. The nuget manager already reads global.json, Directory.Build.props and Directory.Packages.props. global.json is the single SDK selector: point mise at it with idiomatic_version_file_enable_tools rather than repeating the version in mise.toml. The custom manager here only exists for repos that still carry that duplicate",
+  "customManagers": [
+    {
+      "description": "Resolve the dotnet tool in mise config files, for repos that still pin the SDK in both mise.toml and global.json. The mise manager extracts the entry but has no datasource for it and skips it as unsupported-datasource, so that pin never moves and silently drifts. The real fix is to delete the mise entry and add [settings] idiomatic_version_file_enable_tools = [\"dotnet\"] to mise.toml, which makes mise read global.json itself and leaves one selector that cannot drift. depName matches what the nuget manager emits for global.json, so until then one rule keeps both files in step",
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)\\.?mise\\.toml$/",
+        "/(^|/)\\.?mise/config\\.toml$/",
+        "/(^|/)\\.config/mise\\.toml$/"
+      ],
+      "matchStrings": [
+        "(^|\\n)\\s*dotnet\\s*=\\s*\"(?<currentValue>[0-9][^\"]*)\"",
+        "(^|\\n)\\s*dotnet\\s*=\\s*\\{[^}]*version\\s*=\\s*\"(?<currentValue>[0-9][^\"]*)\""
+      ],
+      "datasourceTemplate": "dotnet-version",
+      "depNameTemplate": "dotnet-sdk",
+      "depTypeTemplate": "dotnet-sdk"
+    }
+  ],
   "packageRules": [
     {
       "description": "Label all .NET updates. Matches the category rather than the nuget manager alone, so cake and unity3d are covered too",
@@ -50,13 +68,14 @@
       ]
     },
     {
-      "description": "The SDK pin in global.json is a toolchain change, so keep it out of any package group and give it its own PR",
-      "matchDepTypes": [
+      "description": "Where the SDK is still pinned in both global.json and mise.toml, these are one toolchain selector written twice and must move in one PR, majors included. Grouping only keeps Renovate's own edits in step, never hand edits, so treat it as a guard while repos migrate to the single global.json selector rather than the end state. Keep this rule after the package groups so the selector leaves them",
+      "matchDepNames": [
         "dotnet-sdk"
       ],
-      "groupName": null,
+      "groupName": ".NET SDK toolchain",
       "addLabels": [
-        "dotnet-sdk"
+        "dotnet-sdk",
+        "toolchain"
       ]
     },
     {
