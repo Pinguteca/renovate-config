@@ -1,44 +1,20 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Label and group Go ecosystem updates, including the go directive in go.work",
-  "customManagers": [
-    {
-      "description": "Track the go directive in go.work, which the gomod manager does not read",
-      "customType": "regex",
-      "managerFilePatterns": [
-        "/(^|/)go\\.work$/"
-      ],
-      "matchStrings": [
-        "(^|\\n)go (?<currentValue>\\d+\\.\\d+(\\.\\d+)?)\\n"
-      ],
-      "datasourceTemplate": "golang-version",
-      "depNameTemplate": "go"
-    }
-  ],
+  "description": "Label and group Go ecosystem updates. go.work is deliberately left alone: nothing published reads it, so it is a local selector rather than a version contract, and under the default GOTOOLCHAIN=auto a go line above the installed toolchain makes Go download another one instead of using the one mise selected",
   "packageRules": [
     {
-      "description": "Label all Go updates. Scoped by file so the custom.regex match cannot capture other presets' custom managers",
+      "description": "Label all Go updates",
       "matchManagers": [
-        "gomod",
-        "custom.regex"
-      ],
-      "matchFileNames": [
-        "**/go.mod",
-        "**/go.work"
+        "gomod"
       ],
       "addLabels": [
         "go"
       ]
     },
     {
-      "description": "Group non-major Go updates into a single PR",
+      "description": "Group non-major Go module updates into a single PR",
       "matchManagers": [
-        "gomod",
-        "custom.regex"
-      ],
-      "matchFileNames": [
-        "**/go.mod",
-        "**/go.work"
+        "gomod"
       ],
       "matchUpdateTypes": [
         "minor",
