@@ -148,6 +148,12 @@ The preset separates three things that would otherwise land in one pull request:
 - **Runtime-aligned packages** (`Microsoft.AspNetCore.*`, `Microsoft.EntityFrameworkCore.*`, `Microsoft.Extensions.*`, `System.*`) are grouped together, majors included. These ship in lockstep with the .NET major, so a pull request that moves some to the next major and leaves the rest behind will not build.
 - **The SDK pin** in `global.json` leaves the package groups. It is the .NET toolchain selector, not a package update. Where a repository also repeats the version as a `dotnet` entry in `mise.toml`, a custom manager resolves that entry — the `mise` manager extracts it but has no datasource for it and skips it as `unsupported-datasource`, so it would otherwise never move — and both files share a **.NET SDK toolchain** group, majors included. Deleting the `mise.toml` entry and letting mise read `global.json` is the better end state; the group is a guard for repositories that have not migrated.
 - **MSBuild SDKs** likewise, as build infrastructure.
+- **gRPC code generation.** `Grpc.Tools` generates the C# from the protos at build time, and `Grpc.*` and `Google.Protobuf` are the runtime that generated code calls into. They share a **gRPC codegen and runtime** group, majors included, so a major cannot advance the generator and leave the runtime a major behind. The pull request carries a note reminding whoever merges it to move the matching `buf.build/protocolbuffers/csharp` and `buf.build/grpc/csharp` pins, which Renovate cannot see.
+
+> [!WARNING]
+> `/^Grpc\./` is deliberately broad, and every package it matches today — `Grpc.Tools`, `Grpc.StatusProto`, `Grpc.AspNetCore.HealthChecks` and the rest — is on the grpc-dotnet 2.x release line. A repository that still pulls the legacy `Grpc.Core` (2.46.x, deprecated) would be dragged into the group behind a version train it does not follow. Exclude it there if that ever comes up.
+
+A group that holds a major does not automerge. A branch automerges only if every update in it would, and the shared config automerges minor and patch only, so these rules are insurance against splitting a generator from its runtime rather than a new route to unattended majors.
 
 ### Java
 
@@ -185,6 +191,9 @@ Both halves then share a group, so the plugin and the runtime move in one pull r
 
 > [!WARNING]
 > A remote plugin written without a version is not pinned, and floats to whatever the registry serves on each generation. That is worse than a frozen pin and `buf-config` cannot see it: an unversioned `buf.build/protocolbuffers/csharp` entry was not extracted at all in testing. Pin every plugin before expecting any of this to apply.
+
+> [!NOTE]
+> The same generator-and-runtime pairing exists in NuGet, where both halves are visible to Renovate, and it is handled in `dotnet-config` rather than here. See the gRPC entry in the .NET section.
 
 Only the Go plugins are covered. The protobuf runtimes for C#, Java, Kotlin and Python do not share the plugin's version string — a `v29.3` plugin pairs with `3.29.3` on NuGet and `4.29.3` on Maven — so each needs its own mapping, added once the plugins are pinned and the pairing is confirmed against a real run. Module dependencies in `buf.lock` cannot be tracked at all and want a scheduled `buf dep update` instead.
 
