@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Label and group Python ecosystem updates, keeping majors in their own PR",
+  "description": "Label and group Python ecosystem updates, keeping majors in their own PR and the interpreter selector out of the package group",
   "packageRules": [
     {
       "description": "Label all Python updates",
@@ -46,6 +46,16 @@
         "pin"
       ],
       "groupName": "Copier updates"
+    },
+    {
+      "description": "A .python-version or .tool-versions file selects the interpreter this repo builds with, so it leaves the package group and moves on its own. Point mise at it with idiomatic_version_file_enable_tools rather than repeating the version as a mise python entry. The requires-python floor in pyproject.toml is not extracted by any manager, so it stays a review convention. Keep this rule after the package and Copier groups so the selector leaves them",
+      "matchManagers": [
+        "pyenv"
+      ],
+      "groupName": "Python toolchain updates",
+      "addLabels": [
+        "toolchain"
+      ]
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Label and group Rust ecosystem updates, keeping majors in their own PR",
+  "description": "Label and group Rust ecosystem updates, keeping majors in their own PR and the toolchain selector out of the crate group",
   "packageRules": [
     {
       "description": "Label all Rust updates",
@@ -23,6 +23,16 @@
         "pin"
       ],
       "groupName": "Rust updates"
+    },
+    {
+      "description": "rust-toolchain.toml selects the toolchain this repo builds with, the same job mise does for every other tool, so it leaves the crate group and moves on its own. Point mise at this file with idiomatic_version_file_enable_tools rather than repeating the version as a mise rust entry, and there is only one selector to keep honest. The rust-version floor in Cargo.toml is not extracted by any manager, so it stays a review convention. Keep this rule after the crate group so the selector leaves it",
+      "matchManagers": [
+        "rust-toolchain"
+      ],
+      "groupName": "Rust toolchain updates",
+      "addLabels": [
+        "toolchain"
+      ]
     }
   ]
 }
