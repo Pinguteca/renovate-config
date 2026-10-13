@@ -16,6 +16,7 @@
     "github>Pinguteca/renovate-config//presets/mise-config",
     "github>Pinguteca/renovate-config//presets/dotnet-config",
     "github>Pinguteca/renovate-config//presets/go-config",
+    "github>Pinguteca/renovate-config//presets/buf-config",
     "github>Pinguteca/renovate-config//presets/python-config",
     "github>Pinguteca/renovate-config//presets/javascript-config",
     "github>Pinguteca/renovate-config//presets/java-config",

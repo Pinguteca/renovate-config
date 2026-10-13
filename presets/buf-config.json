@@ -1,0 +1,80 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Keep Buf code generation and the runtime it generates against on the same version. Renovate has no manager for buf.yaml, buf.gen.yaml or buf.lock and there is no BSR datasource, so a remote plugin is invisible unless a custom manager maps it onto a package Renovate can already resolve. That mapping only works where the plugin tag and the runtime version are the same string, which holds for the Go plugins. A plugin written without a version is not pinned at all and floats to whatever the registry serves on each generation, so pin it before expecting any of this to apply",
+  "customManagers": [
+    {
+      "description": "Pinned buf.build/connectrpc/go plugin. connect-go releases the generator plugin and the runtime module from one tag, so the plugin resolves through the go datasource under the runtime's package name and the two can be grouped",
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)buf\\.gen\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "buf\\.build/connectrpc/go:(?<currentValue>v\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "buf.build/connectrpc/go",
+      "packageNameTemplate": "connectrpc.com/connect",
+      "datasourceTemplate": "go",
+      "depTypeTemplate": "buf-plugin"
+    },
+    {
+      "description": "Pinned buf.build/protocolbuffers/go plugin, which shares its tag with google.golang.org/protobuf the same way",
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)buf\\.gen\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "buf\\.build/protocolbuffers/go:(?<currentValue>v\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "buf.build/protocolbuffers/go",
+      "packageNameTemplate": "google.golang.org/protobuf",
+      "datasourceTemplate": "go",
+      "depTypeTemplate": "buf-plugin"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Label every pinned Buf plugin",
+      "matchDepTypes": [
+        "buf-plugin"
+      ],
+      "addLabels": [
+        "buf",
+        "codegen"
+      ]
+    },
+    {
+      "description": "Label the buf CLI wherever mise installs it",
+      "matchManagers": [
+        "mise"
+      ],
+      "matchDepNames": [
+        "buf"
+      ],
+      "addLabels": [
+        "buf"
+      ]
+    },
+    {
+      "description": "Generated code calls into the runtime it was generated against, so the plugin and the runtime must move in one PR or the generated code may not compile. Keep these rules after the ecosystem presets so the pair leaves the Go dependency group",
+      "matchPackageNames": [
+        "/^connectrpc\\.com\\/connect(\\/v\\d+)?$/"
+      ],
+      "groupName": "ConnectRPC codegen and runtime",
+      "addLabels": [
+        "connectrpc",
+        "codegen"
+      ]
+    },
+    {
+      "description": "The same pairing for the protobuf generator and its Go runtime",
+      "matchPackageNames": [
+        "/^google\\.golang\\.org\\/protobuf(\\/v\\d+)?$/"
+      ],
+      "groupName": "protobuf codegen and runtime",
+      "addLabels": [
+        "protobuf",
+        "codegen"
+      ]
+    }
+  ]
+}
