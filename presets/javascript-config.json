@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Label and group JavaScript ecosystem updates, keeping majors in their own PR and toolchain pins out of the package group",
+  "description": "Label and group JavaScript ecosystem updates, keeping majors in their own PR, toolchain selectors out of the package group, and the engines floor out of the toolchain group",
   "packageRules": [
     {
       "description": "Label all JavaScript updates",
@@ -25,9 +25,8 @@
       "groupName": "JavaScript updates"
     },
     {
-      "description": "Runtime and package manager pins inside package.json are toolchain, not dependencies. Node is pinned in engines and volta, and the package manager in engines and packageManager, so these must move together or the toolchain disagrees with itself",
+      "description": "volta and packageManager select the runtime and package manager this repo builds with, the same job mise does for every other tool. Group them so the selectors cannot disagree with each other",
       "matchDepTypes": [
-        "engines",
         "volta",
         "packageManager"
       ],
@@ -37,7 +36,7 @@
       ]
     },
     {
-      "description": "The same runtime pinned in .nvmrc, .node-version or .bun-version. Shares the toolchain group so it cannot drift from the engines and volta pins",
+      "description": "The same runtime pinned in .nvmrc, .node-version or .bun-version. Shares the toolchain group so it cannot drift from the volta and packageManager pins",
       "matchManagers": [
         "nvm",
         "nodenv",
@@ -47,6 +46,18 @@
       "addLabels": [
         "toolchain"
       ]
+    },
+    {
+      "description": "engines is the oldest runtime a consumer of this package may install with, not the runtime this repo builds with. Grouping it with the selectors above would raise the published floor on every local toolchain bump. dependencyDashboardApproval keeps it visible without opening a PR on its own, because raising a published floor is a decision rather than a chore. Applications, whose engines nobody reads, can drop the approval gate. Keep this rule after the selector rules so the floor leaves their group",
+      "matchDepTypes": [
+        "engines"
+      ],
+      "groupName": "JavaScript engines floor",
+      "addLabels": [
+        "toolchain-floor"
+      ],
+      "automerge": false,
+      "dependencyDashboardApproval": true
     }
   ]
 }
