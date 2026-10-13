@@ -68,6 +68,24 @@
       ]
     },
     {
+      "description": "Grpc.Tools generates the C# from the protos at build time, and the Grpc.* and Google.Protobuf packages are the runtime that generated code calls into. They move on one release train, so a major that advanced the generator while leaving the runtime behind would otherwise arrive as two separate PRs. Group them, majors included, the same pairing buf-config makes between a Buf plugin and its runtime. A group holding a major still does not automerge: a branch automerges only if every update in it would, and majors are not automerged, so this is insurance against a split rather than a route to unattended majors",
+      "matchManagers": [
+        "nuget"
+      ],
+      "matchPackageNames": [
+        "/^Grpc\\./",
+        "Google.Protobuf"
+      ],
+      "groupName": "gRPC codegen and runtime",
+      "addLabels": [
+        "grpc",
+        "codegen"
+      ],
+      "prBodyNotes": [
+        "If this repo has a `buf.gen.yaml`, move `buf.build/protocolbuffers/csharp` and `buf.build/grpc/csharp` to the releases matching these versions. Renovate cannot read that file, so nothing else will remind you."
+      ]
+    },
+    {
       "description": "Where the SDK is still pinned in both global.json and mise.toml, these are one toolchain selector written twice and must move in one PR, majors included. Grouping only keeps Renovate's own edits in step, never hand edits, so treat it as a guard while repos migrate to the single global.json selector rather than the end state. Keep this rule after the package groups so the selector leaves them",
       "matchDepNames": [
         "dotnet-sdk"
