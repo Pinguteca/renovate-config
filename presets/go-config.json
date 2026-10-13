@@ -25,15 +25,13 @@
       "groupName": "Go updates"
     },
     {
-      "description": "The go directive is the oldest Go a consumer may build this module with, not the Go this repo builds with. Renovate never raises it on its own: the stock go-mod-directive versioning only bumps the directive when a dependency demands it, so a floor left alone stays frozen indefinitely and nobody is told. loose versioning with a minor-precision extractVersion makes the update visible and keeps the two-component form a floor should have, while dependencyDashboardApproval stops it opening a PR by itself. Raising the floor of a published module is irreversible once the tag is on the module proxy, so it stays a deliberate human act. Applications, whose floor nobody reads, can drop the approval gate. Keep this rule after the group so the floor leaves it",
+      "description": "The go directive is the oldest Go a consumer may build this module with, not the Go this repo builds with, so it stays out of the dependency group and never automerges. Renovate is deliberately left on the stock go-mod-directive versioning, which proposes nothing by itself: go mod tidy already raises the directive when a dependency demands it, and raises it to the lowest version that satisfies the demand, which is both the only correct trigger and the only correct target. Overriding the versioning to chase the newest release instead forces every consumer onto the latest Go. Whether the floor is still inside the supported window is a question for CI, which can build and test at the floor itself",
       "matchManagers": [
         "gomod"
       ],
       "matchDepTypes": [
         "golang"
       ],
-      "versioning": "loose",
-      "extractVersion": "^(?<version>\\d+\\.\\d+)",
       "groupName": "Go language floor",
       "addLabels": [
         "toolchain-floor"
