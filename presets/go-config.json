@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Label and group Go ecosystem updates. go.work is deliberately left alone: nothing published reads it, so it is a local selector rather than a version contract, and under the default GOTOOLCHAIN=auto a go line above the installed toolchain makes Go download another one instead of using the one mise selected",
+  "description": "Label and group Go ecosystem updates. The go directive in go.mod is a consumer compatibility floor, so it is kept out of the dependency group and off automerge. go.work is deliberately left alone: it is a local selector, not a floor, and nothing published reads it",
   "packageRules": [
     {
       "description": "Label all Go updates",
@@ -23,6 +23,23 @@
         "pin"
       ],
       "groupName": "Go updates"
+    },
+    {
+      "description": "The go directive is the oldest Go a consumer may build this module with, not the Go this repo builds with. Renovate never raises it on its own: the stock go-mod-directive versioning only bumps the directive when a dependency demands it, so a floor left alone stays frozen indefinitely and nobody is told. loose versioning with a minor-precision extractVersion makes the update visible and keeps the two-component form a floor should have, while dependencyDashboardApproval stops it opening a PR by itself. Raising the floor of a published module is irreversible once the tag is on the module proxy, so it stays a deliberate human act. Applications, whose floor nobody reads, can drop the approval gate. Keep this rule after the group so the floor leaves it",
+      "matchManagers": [
+        "gomod"
+      ],
+      "matchDepTypes": [
+        "golang"
+      ],
+      "versioning": "loose",
+      "extractVersion": "^(?<version>\\d+\\.\\d+)",
+      "groupName": "Go language floor",
+      "addLabels": [
+        "toolchain-floor"
+      ],
+      "automerge": false,
+      "dependencyDashboardApproval": true
     }
   ],
   "postUpdateOptions": [
