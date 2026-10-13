@@ -1,10 +1,10 @@
 # Renovate Configuration
 
-This repository contains shared Renovate Bot configuration for the Pinguteca organization. It provides a reusable, centrally-managed configuration for automating dependency updates across multiple repositories.
+Shared Renovate configuration for the Pinguteca organization. One place to set dependency update policy for every repository.
 
 ## Overview
 
-[Renovate](https://www.renovatebot.com/) is a tool that automatically detects, updates, and tests dependency updates in your repositories. This config uses best practices and security-focused defaults.
+[Renovate](https://www.renovatebot.com/) finds outdated dependencies, opens pull requests to update them, and lets CI test the result. This config holds the defaults the organization uses.
 
 ## Files
 
@@ -13,7 +13,7 @@ This repository contains shared Renovate Bot configuration for the Pinguteca org
 The main Renovate configuration file. It extends Renovate's best practices preset, then layers the per-ecosystem presets in `presets/` on top of it.
 
 > [!NOTE]
-> Several options in `default.json` restate a current Renovate default. This is deliberate: pinning them explicitly means that if a default changes upstream, it shows up here as a diff in a PR rather than as a silent change in behaviour.
+> Several options in `default.json` restate a current Renovate default. That is on purpose. Pinning them means an upstream change to a default shows up here as a diff in a pull request, not as a silent change in behaviour.
 
 **Base Configuration:**
 
@@ -61,7 +61,7 @@ The main Renovate configuration file. It extends Renovate's best practices prese
 
 ### `presets/`
 
-Each file is an independently extendable preset. Every one of them follows the same two-rule shape:
+Each file is a preset you can extend on its own. They all follow the same two-rule shape:
 
 1. A **label** rule matching all update types, so the ecosystem label is present on every PR.
 2. A **group** rule matching only `minor`, `patch`, `digest` and `pin`, so major updates fall out of the group and get their own PR.
@@ -101,9 +101,9 @@ Each file is an independently extendable preset. Every one of them follows the s
 
 Every version line in a repository answers one of two questions, and the answer decides how Renovate should treat it.
 
-A **selector** says *what this repository builds with*. It is local, nothing downstream reads it, and a mistake is caught by the next CI run. Selectors should move quickly and stay in agreement with one another.
+A **selector** says *what this repository builds with*. It is local, nothing downstream reads it, and a mistake shows up in the next CI run. Selectors should move fast and agree with each other.
 
-A **floor** says *the oldest toolchain a consumer of this package may use*. It is part of the published contract, and raising one forces an upgrade on everybody downstream. For anything already tagged it is irreversible: a Go module version on the proxy cannot be amended. Floors should move deliberately.
+A **floor** says *the oldest toolchain a consumer of this package may use*. It is part of the published contract, and raising one forces an upgrade on everybody downstream. You cannot take it back once a version is tagged, because a Go module on the proxy cannot be amended. Floors should move slowly and on purpose.
 
 | Language | Floor (published contract) | Renovate sees it? | Selector (what this repo builds with) |
 | --- | --- | --- | --- |
@@ -113,31 +113,31 @@ A **floor** says *the oldest toolchain a consumer of this package may use*. It i
 | Rust | `rust-version` in `Cargo.toml` | no | `rust-toolchain.toml` |
 | Python | `requires-python` in `pyproject.toml` | no | `.python-version`, or `python` in `mise.toml` |
 
-Selectors are grouped so they cannot disagree with each other. Floors get their own pull request, never automerge, and sit behind `dependencyDashboardApproval`, so a floor bump appears on the Dependency Dashboard instead of opening a pull request by itself. An application, whose floor nobody reads, can drop the approval gate.
+Selectors are grouped so they cannot disagree. Floors get their own pull request, never automerge, and sit behind `dependencyDashboardApproval`, so a floor bump appears on the Dependency Dashboard instead of opening a pull request on its own. An application, whose floor nobody reads, can drop the approval gate.
 
-The split is driven by what the managers actually emit, checked with `renovate --platform=local`, rather than by guesswork about file names.
+The split follows what the managers actually emit, checked with `renovate --platform=local`. It is not guesswork about file names.
 
 > [!IMPORTANT]
-> Renovate does not raise a Go floor by itself, and that is deliberate. The stock `go-mod-directive` versioning only bumps the `go` directive when a dependency demands it — a `go 1.19` directive produced no update at all in testing, with Go 1.27 released. Leave it that way. `go mod tidy` already raises the directive when a dependency requires more, and raises it to the **lowest** version that satisfies the requirement: adding `connectrpc.com/connect/v2` to a `go 1.24` module rewrote it to `go 1.26.0`, not to the newest release. That is both the right trigger and the right target, and overriding the versioning to chase the newest release would instead force every consumer onto the latest Go.
+> Renovate does not raise a Go floor by itself, and that is on purpose. The stock `go-mod-directive` versioning only bumps the `go` directive when a dependency demands it. In testing, a `go 1.19` directive produced no update at all, with Go 1.27 already out. Leave it that way. `go mod tidy` already raises the directive when a dependency needs more, and raises it to the **lowest** version that satisfies the need. Adding `connectrpc.com/connect/v2` to a `go 1.24` module rewrote it to `go 1.26.0`, not to the newest release. That is the right trigger and the right target. Overriding the versioning to chase the newest release would force every consumer onto the latest Go.
 >
-> `minimumReleaseAge` is not a way around this. On the `golang-version` datasource it had no effect at either 180 or 365 days: both still proposed a Go 1.27 that was five days old.
+> `minimumReleaseAge` is not a way around this. On the `golang-version` datasource it had no effect at 180 or 365 days. Both still proposed a Go 1.27 that was five days old.
 >
-> The consequence worth knowing is that a floor can therefore move inside an ordinary dependency pull request, which may be automerged. Whether the floor still builds, and whether it is still inside the language's support window, belongs in CI — a job that builds and tests at the floor version as well as at the one mise selects.
+> A floor can still move inside an ordinary dependency pull request, which may be automerged. Checking that the floor still builds, and that it is still inside the language's support window, belongs in CI. Use a job that builds and tests at the floor version as well as at the one mise selects.
 
-**Two selectors for one toolchain is the thing to avoid.** Where the same version is pinned in two places, deleting one beats grouping them: grouping keeps Renovate's own edits in step but does nothing about a hand edit. mise can read the ecosystem's own file rather than repeat the version, which leaves exactly one selector:
+**Avoid two selectors for one toolchain.** Where the same version is pinned in two places, delete one instead of grouping them. Grouping keeps Renovate's own edits in step but does nothing about a hand edit. mise can read the ecosystem's own file instead of repeating the version, which leaves one selector:
 
 ```toml
 [settings]
 idiomatic_version_file_enable_tools = ["dotnet", "rust", "python"]
 ```
 
-With that in place `mise current dotnet` resolves from `global.json` and `mise current rust` from `rust-toolchain.toml`. It is off by default in mise and is a per-tool opt-in, so it has to be stated. Putting it in the repository's own `mise.toml` is what makes it portable; setting it per machine reintroduces the drift it was meant to remove.
+With that in place, `mise current dotnet` resolves from `global.json` and `mise current rust` from `rust-toolchain.toml`. It is off by default in mise and opts in per tool, so you have to name each one. Put it in the repository's own `mise.toml` to make it portable. Setting it per machine brings back the drift it was meant to remove.
 
 > [!NOTE]
-> `go.work` is not a floor, and Renovate does not track it. Nothing published reads it, and under the default `GOTOOLCHAIN=auto` a `go` line above the installed toolchain makes Go quietly download another one. Keep it equal to the highest module floor and set `GOTOOLCHAIN=local`, so an overshoot fails with a clear error instead.
+> `go.work` is not a floor, and Renovate does not track it. Nothing published reads it, and under the default `GOTOOLCHAIN=auto` a `go` line above the installed toolchain makes Go quietly download another one. Keep it equal to the highest module floor and set `GOTOOLCHAIN=local`, so an overshoot fails with a clear error.
 
 > [!NOTE]
-> Three of those floors are not automated at all. `TargetFramework`, `rust-version` and `requires-python` are not extracted by any Renovate manager — dry runs over a `.csproj`, a `Cargo.toml` and a `pyproject.toml` returned their package references and nothing else — so those rows are review conventions rather than something the presets act on. Only the Go and Node floors are visible to Renovate.
+> Three of those floors are not automated at all. No Renovate manager extracts `TargetFramework`, `rust-version` or `requires-python`. Dry runs over a `.csproj`, a `Cargo.toml` and a `pyproject.toml` returned their package references and nothing else. Those rows are review conventions, not something the presets act on. Only the Go and Node floors are visible to Renovate.
 
 ### .NET
 
@@ -146,39 +146,39 @@ The `nuget` manager already covers more than project files: `global.json` (both 
 The preset separates three things that would otherwise land in one pull request:
 
 - **Runtime-aligned packages** (`Microsoft.AspNetCore.*`, `Microsoft.EntityFrameworkCore.*`, `Microsoft.Extensions.*`, `System.*`) are grouped together, majors included. These ship in lockstep with the .NET major, so a pull request that moves some to the next major and leaves the rest behind will not build.
-- **The SDK pin** in `global.json` leaves the package groups. It is the .NET toolchain selector, not a package update. Where a repository also repeats the version as a `dotnet` entry in `mise.toml`, a custom manager resolves that entry — the `mise` manager extracts it but has no datasource for it and skips it as `unsupported-datasource`, so it would otherwise never move — and both files share a **.NET SDK toolchain** group, majors included. Deleting the `mise.toml` entry and letting mise read `global.json` is the better end state; the group is a guard for repositories that have not migrated.
+- **The SDK pin** in `global.json` leaves the package groups. It is the .NET toolchain selector, not a package update. Where a repository also repeats the version as a `dotnet` entry in `mise.toml`, a custom manager resolves that entry and both files share a **.NET SDK toolchain** group, majors included. The custom manager is needed because the `mise` manager extracts the entry but has no datasource for it, and skips it as `unsupported-datasource`, so it would never move. The better end state is to delete the `mise.toml` entry and let mise read `global.json`. The group is a guard for repositories that have not migrated yet.
 - **MSBuild SDKs** likewise, as build infrastructure.
 - **gRPC code generation.** `Grpc.Tools` generates the C# from the protos at build time, and `Grpc.*` and `Google.Protobuf` are the runtime that generated code calls into. They share a **gRPC codegen and runtime** group, majors included, so a major cannot advance the generator and leave the runtime a major behind. The pull request carries a note reminding whoever merges it to move the matching `buf.build/protocolbuffers/csharp` and `buf.build/grpc/csharp` pins, which Renovate cannot see.
 
 > [!WARNING]
-> `/^Grpc\./` is deliberately broad, and every package it matches today — `Grpc.Tools`, `Grpc.StatusProto`, `Grpc.AspNetCore.HealthChecks` and the rest — is on the grpc-dotnet 2.x release line. A repository that still pulls the legacy `Grpc.Core` (2.46.x, deprecated) would be dragged into the group behind a version train it does not follow. Exclude it there if that ever comes up.
+> `/^Grpc\./` is broad on purpose. Every package it matches today sits on the grpc-dotnet 2.x release line, including `Grpc.Tools`, `Grpc.StatusProto` and `Grpc.AspNetCore.HealthChecks`. A repository that still pulls the legacy `Grpc.Core` (2.46.x, deprecated) would be dragged into the group behind a version train it does not follow. Exclude it there if that comes up.
 
-A group that holds a major does not automerge. A branch automerges only if every update in it would, and the shared config automerges minor and patch only, so these rules are insurance against splitting a generator from its runtime rather than a new route to unattended majors.
+A group that holds a major does not automerge. A branch automerges only if every update in it would, and the shared config automerges minor and patch only. These rules are insurance against splitting a generator from its runtime, not a new route to unattended majors.
 
 ### Java
 
-`gradle-wrapper` and `maven-wrapper` pin the build tool itself, so they share a **Java build tool updates** group. Majors are included deliberately: the `maven-wrapper` manager emits both the Maven distribution and the wrapper jar, and those two must move together.
+`gradle-wrapper` and `maven-wrapper` pin the build tool itself, so they share a **Java build tool updates** group. Majors are included on purpose. The `maven-wrapper` manager emits both the Maven distribution and the wrapper jar, and those two must move together.
 
 Maven build plugins (`build`) and Gradle plugins (`plugin`) group separately from application dependencies as **Java build plugin updates**.
 
 A Maven `parent` is never grouped. Bumping a parent POM changes the managed version of everything it governs, so it gets its own pull request.
 
 > [!NOTE]
-> Where a Maven version lives in a property, Renovate names the dependency after the property rather than the artifact, so expect a branch like `major-guava.version`.
+> Where a Maven version lives in a property, Renovate names the dependency after the property instead of the artifact, so expect a branch like `major-guava.version`.
 
 ### JavaScript
 
 The runtime is typically pinned in more than one place at once: `volta`, and a `.nvmrc` or `.node-version` file. The package manager is pinned in `packageManager`. If those drift apart the toolchain contradicts itself, so they share one **JavaScript toolchain updates** group and move together.
 
-`engines` is deliberately not in that group. It is the floor — the oldest Node a consumer may install this package with — and grouping it with the selectors would raise the published contract every time the local toolchain moved. It gets its own **JavaScript engines floor** pull request behind dashboard approval.
+`engines` is kept out of that group. It is the floor, the oldest Node a consumer may install this package with. Grouping it with the selectors would raise the published contract every time the local toolchain moved. It gets its own **JavaScript engines floor** pull request behind dashboard approval.
 
 Ordinary packages are unaffected and keep the normal non-major grouping.
 
 ### Code generation (Buf and ConnectRPC)
 
-Renovate has no manager for `buf.yaml`, `buf.gen.yaml` or `buf.lock`, and there is no BSR datasource — asking for one returns `Unknown datasource "buf"`. A dry run over a repository containing all three matched only `go.mod` and `mise.toml`.
+Renovate has no manager for `buf.yaml`, `buf.gen.yaml` or `buf.lock`, and there is no BSR datasource. Asking for one returns `Unknown datasource "buf"`. A dry run over a repository containing all three matched only `go.mod` and `mise.toml`.
 
-That leaves generated code able to drift away from the runtime it calls into. The generator plugin and the runtime are released together, so Renovate walking `connectrpc.com/connect` from v1.18.1 to v2.0.0 while `buf.gen.yaml` still pins `buf.build/connectrpc/go:v1.18.1` produces generated code that may not compile.
+So generated code can drift away from the runtime it calls into. The generator plugin and the runtime are released together. If Renovate walks `connectrpc.com/connect` from v1.18.1 to v2.0.0 while `buf.gen.yaml` still pins `buf.build/connectrpc/go:v1.18.1`, the generated code may not compile.
 
 `buf-config` closes that by mapping the plugin onto the package Renovate can already resolve. It works because the plugin tag and the runtime version are the same string:
 
@@ -193,14 +193,14 @@ Both halves then share a group, so the plugin and the runtime move in one pull r
 > A remote plugin written without a version is not pinned, and floats to whatever the registry serves on each generation. That is worse than a frozen pin and `buf-config` cannot see it: an unversioned `buf.build/protocolbuffers/csharp` entry was not extracted at all in testing. Pin every plugin before expecting any of this to apply.
 
 > [!NOTE]
-> The same generator-and-runtime pairing exists in NuGet, where both halves are visible to Renovate, and it is handled in `dotnet-config` rather than here. See the gRPC entry in the .NET section.
+> The same generator-and-runtime pairing exists in NuGet, where both halves are visible to Renovate. It is handled in `dotnet-config`, not here. See the gRPC entry in the .NET section.
 
-Only the Go plugins are covered. The protobuf runtimes for C#, Java, Kotlin and Python do not share the plugin's version string — a `v29.3` plugin pairs with `3.29.3` on NuGet and `4.29.3` on Maven — so each needs its own mapping, added once the plugins are pinned and the pairing is confirmed against a real run. Module dependencies in `buf.lock` cannot be tracked at all and want a scheduled `buf dep update` instead.
+Only the Go plugins are covered. The protobuf runtimes for C#, Java, Kotlin and Python do not share the plugin's version string. A `v29.3` plugin pairs with `3.29.3` on NuGet and `4.29.3` on Maven. Each needs its own mapping, added once the plugins are pinned and the pairing is confirmed against a real run. Module dependencies in `buf.lock` cannot be tracked at all, so use a scheduled `buf dep update` for those.
 
 > [!NOTE]
 > Renovate should not edit generated output. Where `buf generate` writes into the repository, add that path to `ignorePaths`, or Renovate and the generator will take turns rewriting the same lines.
 >
-> This does **not** apply to Copier instances. `copier update` performs a three-way merge rather than regenerating, and does not manage `go.mod` or `go.work`, so dependency and floor updates made by Renovate in an instance survive. Copier instances stay under Renovate, floors included.
+> This does **not** apply to Copier instances. `copier update` does a three-way merge instead of regenerating, and it does not manage `go.mod` or `go.work`, so updates Renovate makes in an instance survive. Copier instances stay under Renovate, floors included.
 
 ### Conda tools (mise)
 
@@ -224,7 +224,7 @@ The rule matches only names without a slash. mise rejects a channel in the tool 
 
 ### Azure DevOps
 
-`azure-devops-config` sets `azureWorkItemType` to `Task`. Renovate has no issue concept on Azure DevOps, so it stores the Dependency Dashboard as a work item. The default type is `Issue`, which only exists in the `Basic` process; `Task` exists in `Basic`, `Agile` and `Scrum` alike.
+`azure-devops-config` sets `azureWorkItemType` to `Task`. Renovate has no issue concept on Azure DevOps, so it stores the Dependency Dashboard as a work item. The default type is `Issue`, which only exists in the `Basic` process. `Task` exists in `Basic`, `Agile` and `Scrum` alike.
 
 > [!WARNING]
 > Set this before Renovate's first run on a repository. Renovate keeps an existing dashboard work item when the type changes, so switching later strands the old one.
@@ -232,24 +232,24 @@ The rule matches only names without a slash. mise rejects a channel in the tool 
 > [!TIP]
 > If a branch policy requires linked work items, Renovate pull requests cannot complete until one is linked. Set `azureWorkItemId` per repository to the id of an existing work item. It takes a specific id, so it cannot be shared from this preset.
 
-`azure-pipelines-config` enables a manager that is off by default, because Renovate cannot tell whether a task version has reached your Azure DevOps instance yet. It covers YAML pipelines only: classic pipelines are defined in the Azure DevOps database rather than in the repository, so there is no file for Renovate to read.
+`azure-pipelines-config` enables a manager that is off by default, because Renovate cannot tell whether a task version has reached your Azure DevOps instance yet. It covers YAML pipelines only. Classic pipelines live in the Azure DevOps database, not in the repository, so there is no file for Renovate to read.
 
 It updates pipeline tasks, images in `resources.containers`, and GitHub repository resources pinned to a tag. It does **not** update `pool.vmImage`, Azure-hosted repositories in `resources.repositories`, or the root `container:` element of a container job.
 
-File patterns are additive rather than replaced, so this preset adds `ci/` on top of the built-in `azure-pipelines.yml` and `.azure-pipelines/**` patterns.
+File patterns add to the defaults instead of replacing them, so this preset adds `ci/` on top of the built-in `azure-pipelines.yml` and `.azure-pipelines/**` patterns.
 
 #### Agent images
 
-Prefer `ubuntu-latest`, `windows-latest` and `macos-latest` over a pinned `vmImage`. Renovate cannot maintain a pinned one, and the `-latest` alias is the only thing that tracks the signal that matters: Microsoft moves it when the image is actually available on their hosted agents.
+Prefer `ubuntu-latest`, `windows-latest` and `macos-latest` over a pinned `vmImage`. Renovate cannot maintain a pinned one. The `-latest` alias is the only thing that tracks the signal that matters, because Microsoft moves it when the image is actually available on their hosted agents.
 
 To migrate existing pinned images, extend `azure-pipelines-agent-latest`. It opens a replacement pull request rewriting `ubuntu-22.04` to `ubuntu-latest`, and leaves images already on an alias alone.
 
 > [!WARNING]
 > That preset also opens version-chasing pull requests it cannot suppress, roughly two per pinned Ubuntu or macOS image, proposing OS releases that Microsoft may not ship an agent for yet. Close them and merge only the replacement. Both stop permanently once the file no longer pins a version, since the custom manager then matches nothing. Windows is unaffected.
 
-It is a migration helper, not a standing policy, so it is deliberately left out of `default.json`. Extend it per repository and stop once the migration is done.
+It is a migration helper, not a standing policy, so it is left out of `default.json`. Extend it per repository and stop once the migration is done.
 
-Do not try to track agent versions instead. `endoflife-date` knows when an OS release exists, not when Microsoft ships an agent for it, and the two are months apart. It also only covers Ubuntu and macOS, returning Windows Server build numbers such as `10.0.20348.2582` rather than the `2019`/`2022`/`2025` labels a pipeline uses. Tracking `actions/runner-images` does not help either, even though Microsoft builds the hosted images there: its tags and releases are per-image builds such as `win25/20260913.261`, not the `windows-2025` labels `vmImage` accepts.
+Do not try to track agent versions instead. `endoflife-date` knows when an OS release exists, not when Microsoft ships an agent for it, and the two are months apart. It also only covers Ubuntu and macOS, returning Windows Server build numbers such as `10.0.20348.2582` instead of the `2019`/`2022`/`2025` labels a pipeline uses. Tracking `actions/runner-images` does not help either, even though Microsoft builds the hosted images there. Its tags and releases are per-image builds such as `win25/20260913.261`, not the `windows-2025` labels `vmImage` accepts.
 
 Presets can also be extended individually, without `default.json`:
 
@@ -290,7 +290,7 @@ To use this configuration in your repository:
 
 ## Pre-commit Configuration (`prek.toml`)
 
-This repository includes pre-commit hooks using Prek for local development and CI/CD validation:
+Pre-commit hooks run through Prek, locally and in CI:
 
 **Hooks Included:**
 
@@ -331,24 +331,24 @@ prek install --install-hooks
 
 ### Semantic Commits
 
-Commit messages follow the conventional commits format, enabling automated changelog generation and version bumping based on commit type. Renovate uses chore and fix unless specified otherwise.
+Commit messages follow the conventional commits format, so changelogs and version bumps can be generated from the commit type. Renovate uses chore and fix unless told otherwise.
 
 ### Minimum Release Age
 
-Waits 7 days after a package release before creating update PRs. This reduces the risk of updating to versions with undiscovered bugs and vulnerabilities.
+Waits 7 days after a package release before opening update PRs. That lowers the risk of picking up a release with bugs or vulnerabilities nobody has found yet.
 
-Snyk's [21 day cooldown strategy](https://snyk.io/blog/shai-hulud-post-mortem/#the-21-day-cooldown-strategy) argues for a longer window. 7 days is the deliberate trade-off taken here between supply-chain exposure and carrying known-fixed bugs for three weeks. Raise `minimumReleaseAge` in a consuming repository if it warrants a more conservative window.
+Snyk's [21 day cooldown strategy](https://snyk.io/blog/shai-hulud-post-mortem/#the-21-day-cooldown-strategy) argues for a longer window. 7 days is the trade-off taken here between supply-chain exposure and carrying known-fixed bugs for three weeks. Raise `minimumReleaseAge` in a consuming repository if it warrants a more conservative window.
 
 ### Draft PRs
 
-Renovate opens PRs as drafts, so they read as not-yet-for-review while checks settle, and the `automerge` rules set `draftPR: false` wherever a PR is expected to merge on its own. This matters because GitHub refuses to merge a draft PR: any automerge-eligible update that stayed a draft would simply stall.
+Renovate opens PRs as drafts, so they read as not-yet-for-review while checks settle. The `automerge` rules set `draftPR: false` wherever a PR is expected to merge on its own. GitHub refuses to merge a draft PR, so an automerge-eligible update that stayed a draft would stall.
 
 > [!NOTE]
 > Draft status does not by itself stop GitHub Actions from running. Workflows run on draft PRs unless they opt out, for example with `if: github.event.pull_request.draft == false`. Use `prCreation: "not-pending"` instead if the goal is to avoid spending CI minutes.
 
 ### Major Updates
 
-Major updates are deliberately excluded from the ecosystem groups, so a breaking change arrives in its own PR with its own checks rather than buried among patches. Major PRs also carry a warning banner in the PR body, and are never automerged.
+Major updates are kept out of the ecosystem groups, so a breaking change arrives in its own PR with its own checks instead of buried among patches. Major PRs also carry a warning banner in the PR body, and are never automerged.
 
 `hk-config` is the one exception: the `hk` tool and the `hk.pkl` package must move together or the setup breaks, so that group includes majors.
 
@@ -356,10 +356,10 @@ Major updates are deliberately excluded from the ecosystem groups, so a breaking
 
 There is no schedule window. Non-major updates are created as soon as a version qualifies and merge as soon as checks pass.
 
-An office-hours merge window was tried and removed. Its premise was that an automerged update should land while someone is around to notice breakage, but nothing watches a merge happen. The real safety net is CI refusing to merge a broken change and, for deployed workloads, the GitOps controller rolling back to the previous commit. Against that, the window only added latency: a weekend pull request waited until Monday morning, on top of the seven-day [minimum release age](#minimum-release-age).
+An office-hours merge window was tried and removed. Its premise was that an automerged update should land while someone is around to notice breakage, but nothing watches a merge happen. The real safety net is CI refusing to merge a broken change and, for deployed workloads, the GitOps controller rolling back to the previous commit. Against that, the window only added latency. A weekend pull request waited until Monday morning, on top of the seven-day [minimum release age](#minimum-release-age).
 
 > [!NOTE]
-> `platformAutomerge` is left at its default of `true`, so the platform merges the moment required checks pass rather than waiting for the next Renovate run.
+> `platformAutomerge` is left at its default of `true`, so the platform merges the moment required checks pass instead of waiting for the next Renovate run.
 >
 > It has to be `false` for `automergeSchedule` to work at all, because Renovate hands the pull request to the platform's native automerge at creation time and, as the docs put it, "the schedule specified in `automergeSchedule` cannot be followed". If a merge window is ever reintroduced, that setting has to change with it or the window is silently decoration.
 
@@ -373,26 +373,26 @@ Majors are unaffected: they are never automerged, so they wait for a human regar
 > [!WARNING]
 > The [minimum release age](#minimum-release-age) does **not** apply to container digest updates. Digest updates carry no release timestamp, so Renovate has nothing to age them against and lets them through immediately, even under `internalChecksFilter: "strict"`. This was verified with a dry-run: a ten-year cooldown fails to hold a digest refresh.
 
-Since digest updates are also automerged, a compromised upstream tag would be picked up and merged once CI passes, without waiting out the cooldown. Digest pinning plus digest automerge is therefore close to following the mutable tag, with the benefit that each move is a reviewable commit rather than an invisible change.
+Since digest updates are also automerged, a compromised upstream tag would be picked up and merged once CI passes, without waiting out the cooldown. Digest pinning plus digest automerge is therefore close to following the mutable tag, except that each move is a reviewable commit instead of an invisible change.
 
-This is an accepted trade-off rather than an oversight. To close it, drop `digest` from the `matchUpdateTypes` of the automerge rule in `default.json`, so digest refreshes become pull requests a person reviews. Expect real volume if you do: base images are rebuilt often, and unreviewed pull requests that pile up turn into stale images, which is its own security problem.
+This is an accepted trade-off, not an oversight. To close it, drop `digest` from the `matchUpdateTypes` of the automerge rule in `default.json`, so digest refreshes become pull requests a person reviews. Expect real volume if you do: base images are rebuilt often, and unreviewed pull requests that pile up turn into stale images, which is its own security problem.
 
 Narrowing the exemption to a curated list of trusted registries was considered and rejected. Keeping such a list current is its own maintenance burden, and it would buy little: digest refreshes already bypass the cooldown for every registry, and those are how vendor CVE fixes ship. A list would only accelerate version bumps by seven days.
 
 ### Security Auto-merge
 
-Security vulnerability fixes are automatically merged after passing checks even if they do not meet the [minimum release age](#minimum-release-age), ensuring timely security patching.
+Security fixes merge automatically once checks pass, even if they do not meet the [minimum release age](#minimum-release-age).
 
 ### Lock File Maintenance
 
-Keeps lock files fresh by running on a schedule, and automerges the result.
+Refreshes lock files on a schedule and automerges the result.
 
 > [!NOTE]
-> Renovate commits a manifest change and its lock file in the same commit, so the two do not drift under normal operation. They can drift when the artifact update itself fails, for example a missing toolchain or a private registry the runner cannot authenticate against. Renovate reports that as a warning in the PR body rather than failing the PR, so consuming repositories should enforce it in CI with a locked install such as `npm ci`, `uv lock --check`, `go mod verify` or `dotnet restore --locked-mode`.
+> Renovate commits a manifest change and its lock file in the same commit, so the two do not drift under normal operation. They can drift when the artifact update itself fails, for example a missing toolchain or a private registry the runner cannot authenticate against. Renovate reports that as a warning in the PR body instead of failing the PR, so consuming repositories should enforce it in CI with a locked install such as `npm ci`, `uv lock --check`, `go mod verify` or `dotnet restore --locked-mode`.
 
 ## Extending This Configuration
 
-Repositories can extend this config and override any settings:
+Repositories can extend this config and override any setting:
 
 ```json
 {
@@ -404,7 +404,7 @@ Repositories can extend this config and override any settings:
 }
 ```
 
-All standard Renovate configuration options are available for customization.
+Every standard Renovate option can be overridden.
 
 ## Resources
 
