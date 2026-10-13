@@ -81,8 +81,8 @@ Each file is an independently extendable preset. Every one of them follows the s
 | `pre-commit-config` | `.pre-commit-config.yaml` hooks, plus `prek.toml` via a stopgap custom manager | Pre-commit updates |
 | `nix-config` | Nix flakes and packages | Nix updates |
 | `python-config` | Python packages and Copier templates | Python / Copier updates |
-| `javascript-config` | JS/TS packages, plus Node and package-manager pins | JavaScript updates |
-| `go-config` | Go modules, plus the `go` directive in `go.work` | Go updates |
+| `javascript-config` | JS/TS packages, plus Node and package-manager pins and the `engines` floor | JavaScript updates |
+| `go-config` | Go modules, plus the `go` directive floor in `go.mod` | Go updates |
 | `java-config` | Maven, Gradle, their wrappers, plugins and parent POMs | Java updates |
 | `dotnet-config` | NuGet, Cake, Unity3D, plus `global.json` and `Directory.*.props` | .NET updates |
 | `rust-config` | Cargo | Rust updates |
@@ -96,11 +96,43 @@ Each file is an independently extendable preset. Every one of them follows the s
 > - `hk-config` must stay **last**, so its grouping overrides `mise-config` for `hk` dependencies.
 > - `container-config` must also come **before** `azure-pipelines-config`, so images declared in a pipeline are regrouped with that pipeline.
 
-### Toolchain versus dependencies
+### Floors versus selectors
 
-Three presets split a repository's *toolchain* away from its *dependencies*, because the two carry different risk and want different reviewers. A dependency bump is routine; a change to the compiler, runtime or build tool is not, and it should not arrive buried in a group of forty patches.
+Every version line in a repository answers one of two questions, and the answer decides how Renovate should treat it.
+
+A **selector** says *what this repository builds with*. It is local, nothing downstream reads it, and a mistake is caught by the next CI run. Selectors should move quickly and stay in agreement with one another.
+
+A **floor** says *the oldest toolchain a consumer of this package may use*. It is part of the published contract, and raising one forces an upgrade on everybody downstream. For anything already tagged it is irreversible: a Go module version on the proxy cannot be amended. Floors should move deliberately.
+
+| Language | Floor (published contract) | Selector (what this repo builds with) |
+| --- | --- | --- |
+| Go | `go` directive in each `go.mod` | `go` in `mise.toml`, with `go.work` at or below it |
+| .NET | `TargetFramework` in the project file | `sdk.version` in `global.json` |
+| Node | `engines` in `package.json` | `volta`, `packageManager`, `.nvmrc`, `.node-version`, `.bun-version` |
+| Rust | `rust-version` in `Cargo.toml` | `rust-toolchain.toml` |
+| Python | `requires-python` | `.python-version`, or `python` in `mise.toml` |
+
+Selectors are grouped so they cannot disagree with each other. Floors get their own pull request, never automerge, and sit behind `dependencyDashboardApproval`, so a floor bump appears on the Dependency Dashboard instead of opening a pull request by itself. An application, whose floor nobody reads, can drop the approval gate.
 
 The split is driven by what the managers actually emit, checked with `renovate --platform=local`, rather than by guesswork about file names.
+
+> [!IMPORTANT]
+> Renovate will not raise a Go floor on its own. The stock `go-mod-directive` versioning only bumps the `go` directive when a dependency demands it, so a floor left alone stays frozen and nobody is told: a `go 1.19` directive produced no update at all in testing, with Go 1.27 released. `go-config` overrides it with `loose` versioning and a minor-precision `extractVersion`, which also collapses an over-specified `go 1.26.6` back to the `go 1.27` form a floor should have.
+
+**Two selectors for one toolchain is the thing to avoid.** Where the same version is pinned in two places, deleting one beats grouping them: grouping keeps Renovate's own edits in step but does nothing about a hand edit. mise can read the ecosystem's own file rather than repeat the version, which leaves exactly one selector:
+
+```toml
+[settings]
+idiomatic_version_file_enable_tools = ["dotnet", "rust", "python"]
+```
+
+With that in place `mise current dotnet` resolves from `global.json` and `mise current rust` from `rust-toolchain.toml`. It is off by default in mise and is a per-tool opt-in, so it has to be stated. Putting it in the repository's own `mise.toml` is what makes it portable; setting it per machine reintroduces the drift it was meant to remove.
+
+> [!NOTE]
+> `go.work` is not a floor, and Renovate does not track it. Nothing published reads it, and under the default `GOTOOLCHAIN=auto` a `go` line above the installed toolchain makes Go quietly download another one. Keep it equal to the highest module floor and set `GOTOOLCHAIN=local`, so an overshoot fails with a clear error instead.
+
+> [!NOTE]
+> The .NET floor is not automated. `TargetFramework` is not extracted by any Renovate manager — a dry run over a project file returns its `PackageReference` entries and nothing else — so that row of the table is a review convention rather than something the presets act on.
 
 ### .NET
 
@@ -109,7 +141,7 @@ The `nuget` manager already covers more than project files: `global.json` (both 
 The preset separates three things that would otherwise land in one pull request:
 
 - **Runtime-aligned packages** (`Microsoft.AspNetCore.*`, `Microsoft.EntityFrameworkCore.*`, `Microsoft.Extensions.*`, `System.*`) are grouped together, majors included. These ship in lockstep with the .NET major, so a pull request that moves some to the next major and leaves the rest behind will not build.
-- **The SDK pin** in `global.json` gets its own pull request. It is a toolchain change, not a package update.
+- **The SDK pin** in `global.json` leaves the package groups. It is the .NET toolchain selector, not a package update. Where a repository also repeats the version as a `dotnet` entry in `mise.toml`, a custom manager resolves that entry — the `mise` manager extracts it but has no datasource for it and skips it as `unsupported-datasource`, so it would otherwise never move — and both files share a **.NET SDK toolchain** group, majors included. Deleting the `mise.toml` entry and letting mise read `global.json` is the better end state; the group is a guard for repositories that have not migrated.
 - **MSBuild SDKs** likewise, as build infrastructure.
 
 ### Java
@@ -125,7 +157,9 @@ A Maven `parent` is never grouped. Bumping a parent POM changes the managed vers
 
 ### JavaScript
 
-The runtime is typically pinned in more than one place at once: `engines`, `volta`, and a `.nvmrc` or `.node-version` file. The package manager is pinned in both `engines` and `packageManager`. If those drift apart the toolchain contradicts itself, so all of them share one **JavaScript toolchain updates** group and move together.
+The runtime is typically pinned in more than one place at once: `volta`, and a `.nvmrc` or `.node-version` file. The package manager is pinned in `packageManager`. If those drift apart the toolchain contradicts itself, so they share one **JavaScript toolchain updates** group and move together.
+
+`engines` is deliberately not in that group. It is the floor — the oldest Node a consumer may install this package with — and grouping it with the selectors would raise the published contract every time the local toolchain moved. It gets its own **JavaScript engines floor** pull request behind dashboard approval.
 
 Ordinary packages are unaffected and keep the normal non-major grouping.
 
