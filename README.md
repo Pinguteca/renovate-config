@@ -83,6 +83,7 @@ Each file is an independently extendable preset. Every one of them follows the s
 | `python-config` | Python packages and Copier templates | Python / Copier updates |
 | `javascript-config` | JS/TS packages, plus Node and package-manager pins and the `engines` floor | JavaScript updates |
 | `go-config` | Go modules, plus the `go` directive floor in `go.mod` | Go updates |
+| `buf-config` | Pinned Buf remote plugins, paired with the runtime they generate against | ConnectRPC / protobuf codegen |
 | `java-config` | Maven, Gradle, their wrappers, plugins and parent POMs | Java updates |
 | `dotnet-config` | NuGet, Cake, Unity3D, plus `global.json` and `Directory.*.props` | .NET updates |
 | `rust-config` | Cargo | Rust updates |
@@ -104,20 +105,24 @@ A **selector** says *what this repository builds with*. It is local, nothing dow
 
 A **floor** says *the oldest toolchain a consumer of this package may use*. It is part of the published contract, and raising one forces an upgrade on everybody downstream. For anything already tagged it is irreversible: a Go module version on the proxy cannot be amended. Floors should move deliberately.
 
-| Language | Floor (published contract) | Selector (what this repo builds with) |
-| --- | --- | --- |
-| Go | `go` directive in each `go.mod` | `go` in `mise.toml`, with `go.work` at or below it |
-| .NET | `TargetFramework` in the project file | `sdk.version` in `global.json` |
-| Node | `engines` in `package.json` | `volta`, `packageManager`, `.nvmrc`, `.node-version`, `.bun-version` |
-| Rust | `rust-version` in `Cargo.toml` | `rust-toolchain.toml` |
-| Python | `requires-python` | `.python-version`, or `python` in `mise.toml` |
+| Language | Floor (published contract) | Renovate sees it? | Selector (what this repo builds with) |
+| --- | --- | --- | --- |
+| Go | `go` directive in each `go.mod` | yes, dependency-driven | `go` in `mise.toml`, with `go.work` at or below it |
+| .NET | `TargetFramework` in the project file | no | `sdk.version` in `global.json` |
+| Node | `engines` in `package.json` | yes | `volta`, `packageManager`, `.nvmrc`, `.node-version`, `.bun-version` |
+| Rust | `rust-version` in `Cargo.toml` | no | `rust-toolchain.toml` |
+| Python | `requires-python` in `pyproject.toml` | no | `.python-version`, or `python` in `mise.toml` |
 
 Selectors are grouped so they cannot disagree with each other. Floors get their own pull request, never automerge, and sit behind `dependencyDashboardApproval`, so a floor bump appears on the Dependency Dashboard instead of opening a pull request by itself. An application, whose floor nobody reads, can drop the approval gate.
 
 The split is driven by what the managers actually emit, checked with `renovate --platform=local`, rather than by guesswork about file names.
 
 > [!IMPORTANT]
-> Renovate will not raise a Go floor on its own. The stock `go-mod-directive` versioning only bumps the `go` directive when a dependency demands it, so a floor left alone stays frozen and nobody is told: a `go 1.19` directive produced no update at all in testing, with Go 1.27 released. `go-config` overrides it with `loose` versioning and a minor-precision `extractVersion`, which also collapses an over-specified `go 1.26.6` back to the `go 1.27` form a floor should have.
+> Renovate does not raise a Go floor by itself, and that is deliberate. The stock `go-mod-directive` versioning only bumps the `go` directive when a dependency demands it — a `go 1.19` directive produced no update at all in testing, with Go 1.27 released. Leave it that way. `go mod tidy` already raises the directive when a dependency requires more, and raises it to the **lowest** version that satisfies the requirement: adding `connectrpc.com/connect/v2` to a `go 1.24` module rewrote it to `go 1.26.0`, not to the newest release. That is both the right trigger and the right target, and overriding the versioning to chase the newest release would instead force every consumer onto the latest Go.
+>
+> `minimumReleaseAge` is not a way around this. On the `golang-version` datasource it had no effect at either 180 or 365 days: both still proposed a Go 1.27 that was five days old.
+>
+> The consequence worth knowing is that a floor can therefore move inside an ordinary dependency pull request, which may be automerged. Whether the floor still builds, and whether it is still inside the language's support window, belongs in CI — a job that builds and tests at the floor version as well as at the one mise selects.
 
 **Two selectors for one toolchain is the thing to avoid.** Where the same version is pinned in two places, deleting one beats grouping them: grouping keeps Renovate's own edits in step but does nothing about a hand edit. mise can read the ecosystem's own file rather than repeat the version, which leaves exactly one selector:
 
@@ -132,7 +137,7 @@ With that in place `mise current dotnet` resolves from `global.json` and `mise c
 > `go.work` is not a floor, and Renovate does not track it. Nothing published reads it, and under the default `GOTOOLCHAIN=auto` a `go` line above the installed toolchain makes Go quietly download another one. Keep it equal to the highest module floor and set `GOTOOLCHAIN=local`, so an overshoot fails with a clear error instead.
 
 > [!NOTE]
-> The .NET floor is not automated. `TargetFramework` is not extracted by any Renovate manager — a dry run over a project file returns its `PackageReference` entries and nothing else — so that row of the table is a review convention rather than something the presets act on.
+> Three of those floors are not automated at all. `TargetFramework`, `rust-version` and `requires-python` are not extracted by any Renovate manager — dry runs over a `.csproj`, a `Cargo.toml` and a `pyproject.toml` returned their package references and nothing else — so those rows are review conventions rather than something the presets act on. Only the Go and Node floors are visible to Renovate.
 
 ### .NET
 
@@ -162,6 +167,31 @@ The runtime is typically pinned in more than one place at once: `volta`, and a `
 `engines` is deliberately not in that group. It is the floor — the oldest Node a consumer may install this package with — and grouping it with the selectors would raise the published contract every time the local toolchain moved. It gets its own **JavaScript engines floor** pull request behind dashboard approval.
 
 Ordinary packages are unaffected and keep the normal non-major grouping.
+
+### Code generation (Buf and ConnectRPC)
+
+Renovate has no manager for `buf.yaml`, `buf.gen.yaml` or `buf.lock`, and there is no BSR datasource — asking for one returns `Unknown datasource "buf"`. A dry run over a repository containing all three matched only `go.mod` and `mise.toml`.
+
+That leaves generated code able to drift away from the runtime it calls into. The generator plugin and the runtime are released together, so Renovate walking `connectrpc.com/connect` from v1.18.1 to v2.0.0 while `buf.gen.yaml` still pins `buf.build/connectrpc/go:v1.18.1` produces generated code that may not compile.
+
+`buf-config` closes that by mapping the plugin onto the package Renovate can already resolve. It works because the plugin tag and the runtime version are the same string:
+
+| Pinned in `buf.gen.yaml` | Resolved as | Datasource |
+| --- | --- | --- |
+| `buf.build/connectrpc/go` | `connectrpc.com/connect` | `go` |
+| `buf.build/protocolbuffers/go` | `google.golang.org/protobuf` | `go` |
+
+Both halves then share a group, so the plugin and the runtime move in one pull request, majors included.
+
+> [!WARNING]
+> A remote plugin written without a version is not pinned, and floats to whatever the registry serves on each generation. That is worse than a frozen pin and `buf-config` cannot see it: an unversioned `buf.build/protocolbuffers/csharp` entry was not extracted at all in testing. Pin every plugin before expecting any of this to apply.
+
+Only the Go plugins are covered. The protobuf runtimes for C#, Java, Kotlin and Python do not share the plugin's version string — a `v29.3` plugin pairs with `3.29.3` on NuGet and `4.29.3` on Maven — so each needs its own mapping, added once the plugins are pinned and the pairing is confirmed against a real run. Module dependencies in `buf.lock` cannot be tracked at all and want a scheduled `buf dep update` instead.
+
+> [!NOTE]
+> Renovate should not edit generated output. Where `buf generate` writes into the repository, add that path to `ignorePaths`, or Renovate and the generator will take turns rewriting the same lines.
+>
+> This does **not** apply to Copier instances. `copier update` performs a three-way merge rather than regenerating, and does not manage `go.mod` or `go.work`, so dependency and floor updates made by Renovate in an instance survive. Copier instances stay under Renovate, floors included.
 
 ### Conda tools (mise)
 
