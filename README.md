@@ -42,7 +42,7 @@ The main Renovate configuration file. It extends Renovate's best practices prese
 - Adds an ecosystem label such as `python` or `container` via the presets in `presets/`
 - Adds a `git-hooks` label across pre-commit, prek and hk updates, so hook tooling is visible at a glance without being forced into one group
 - Automerges minor, patch, pin and digest updates once checks pass
-- Automerges `devDependencies` regardless of update type
+- Automerges `devDependencies` of any update type except major, including replacements and rollbacks
 - Pausable per-PR by applying the `have-a-break-renovate` label
 
 **Security Features:**
@@ -392,7 +392,7 @@ Security fixes skip the [minimum release age](#minimum-release-age) and are crea
 > Nested `packageRules` inside `vulnerabilityAlerts` are not a workaround. They pass `renovate-config-validator --strict` and then do nothing at runtime. `dependencyDashboardApproval` does not work either, because the built-in default forces it to `false`. A security major arrives as an open pull request and waits there.
 
 > [!NOTE]
-> A security major in `devDependencies` still automerges, because that rule matches every update type. Those never reach consumers, and a break usually shows up as a failing check, which blocks the merge anyway. Add `matchUpdateTypes` to that rule if you want them held too.
+> This holds for `devDependencies` too. They automerge on every other update type, including replacements and rollbacks, but a major is held like any other. Nothing reaches consumers from a devDependency, but a major can still break the build or the release pipeline.
 
 ### Lock File Maintenance
 

@@ -100,6 +100,17 @@
       ],
       "automerge": true,
       "draftPR": false
+    },
+    {
+      "description": "Hold major development dependency updates. The rule above automerges every update type for devDependencies, which is fine while the change is non-breaking, but a major can break the build or the release pipeline even though nothing reaches consumers. This also catches the security case, where a fix whose lowest remedy is a new major would otherwise merge unattended. draftPR returns to the default so a held major reads like any other major awaiting review, and a security major stays undrafted because vulnerabilityAlerts forces that",
+      "matchDepTypes": [
+        "devDependencies"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "automerge": false,
+      "draftPR": true
     }
   ]
 }
