@@ -61,7 +61,7 @@
       "security"
     ],
     "draftPR": false,
-    "automerge": true
+    "description": "Security fixes skip the cooldown and are created immediately. automerge is left unset here on purpose. The whole vulnerabilityAlerts object is spread into a packageRule force block, which outranks every other rule, so setting automerge true here merges a major version jump unattended. Left unset, the ordinary update-type rule below decides, so a security patch or minor still merges on its own and a security major waits for a human. dependencyDashboardApproval cannot gate it, because the built-in default forces that to false."
   },
   "pin": {
     "commitBody": "[skip ci]",
