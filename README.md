@@ -381,7 +381,18 @@ Narrowing the exemption to a curated list of trusted registries was considered a
 
 ### Security Auto-merge
 
-Security fixes merge automatically once checks pass, even if they do not meet the [minimum release age](#minimum-release-age).
+Security fixes skip the [minimum release age](#minimum-release-age) and are created immediately. Non-major ones merge on their own once checks pass. A security fix that needs a major version does not. `vulnerabilityFixStrategy` is `lowest`, so Renovate takes the lowest version that resolves the advisory, but when every fixed version sits in a later major that is still a breaking change.
+
+> [!IMPORTANT]
+> `automerge` is left unset inside `vulnerabilityAlerts` on purpose. Renovate spreads the whole `vulnerabilityAlerts` object into a packageRule `force` block, which outranks every other rule, so `automerge: true` there merges a major jump unattended no matter what the update-type rules say. Left unset, the ordinary update-type rule decides.
+>
+> Checked against Renovate's own `applyPackageRules`. With the key set, a security major resolved to `automerge=true`. Without it, a security major resolves to `false` while minor and patch stay `true`. A real example is `jsonwebtoken` 8.5.1, where the advisories are only fixed in 9.0.0.
+
+> [!WARNING]
+> Nested `packageRules` inside `vulnerabilityAlerts` are not a workaround. They pass `renovate-config-validator --strict` and then do nothing at runtime. `dependencyDashboardApproval` does not work either, because the built-in default forces it to `false`. A security major arrives as an open pull request and waits there.
+
+> [!NOTE]
+> A security major in `devDependencies` still automerges, because that rule matches every update type. Those never reach consumers, and a break usually shows up as a failing check, which blocks the merge anyway. Add `matchUpdateTypes` to that rule if you want them held too.
 
 ### Lock File Maintenance
 
