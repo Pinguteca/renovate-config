@@ -4,7 +4,8 @@
     "Shared Renovate defaults for the Pinguteca organization.",
     "Non-major updates automerge as soon as checks pass, with no schedule window. Breakage is caught by CI and, for deployed workloads, rolled back by the GitOps controller, so delaying merges to office hours bought latency rather than safety.",
     "Options that merely restate a Renovate default are set explicitly on purpose, so that a default changing upstream shows up as a diff here rather than as silent behaviour drift.",
-    "Preset order matters: container-config must precede kubernetes-config so Kubernetes regroups images, and hk-config must stay last so its grouping overrides mise-config for hk dependencies."
+    "Preset order matters: container-config must precede kubernetes-config so Kubernetes regroups images, and hk-config must stay last so its grouping overrides mise-config for hk dependencies.",
+    "Prereleases are skipped, not held. allowedVersions filters them out before an update object exists, so none of them reaches a branch or the Dependency Dashboard. ignoreUnstable stays on as the semantic first pass, and the final rule keeps anything that slips past both off automerge."
   ],
   "extends": [
     "config:best-practices",
@@ -53,6 +54,8 @@
   "separateMultipleMajor": true,
   "minimumReleaseAge": "7 days",
   "internalChecksFilter": "strict",
+  "ignoreUnstable": true,
+  "respectLatest": true,
   "osvVulnerabilityAlerts": true,
   "dependencyDashboardOSVVulnerabilitySummary": "unresolved",
   "vulnerabilityAlerts": {
@@ -111,6 +114,22 @@
       ],
       "automerge": false,
       "draftPR": true
+    },
+    {
+      "description": "Skip prereleases outright. ignoreUnstable already keeps a dependency on a stable version from being offered one, but it does nothing for a dependency that already sits on a prerelease: Renovate keeps following that track, and rc.7 to rc.9 classifies as a patch. internalChecksFilter strict compounds it by dropping every release still inside minimumReleaseAge, so the newest eligible version can be a prerelease while the stable one waits out the cooldown. allowedVersions filters candidate releases before any update object is built, so a prerelease produces no branch, no pull request and no Dependency Dashboard entry. The pattern covers the hyphen and dot suffix forms used by semver, NuGet and Maven, and the attached form used by PEP 440. It is anchored at the end, which leaves container variant tags such as alpine, bookworm, musl and devel-ubuntu22.04 alone, along with stable letter releases like openssl 1.1.1a and Go pseudo-versions. The anchor also means a prerelease carrying a trailing variant, such as 1.0.0-rc1-alpine, still gets through, which is the safe direction to fail. It uses no lookaround or backreference, so RE2 and the RegExp fallback agree",
+      "matchPackageNames": [
+        "*"
+      ],
+      "allowedVersions": "!/(?:[-_.](?:prerelease|preview|pre|alpha|beta|canary|dev|next|nightly|rc|snapshot)\\d*(?:[-_.]\\d+)*$)|(?:[-_.]m\\d+(?:[-_.]\\d+)*$)|(?:^v?\\d+(?:\\.\\d+)*\\.?(?:(?:alpha|beta|rc|dev)\\d*|[ab]\\d+)$)/i"
+    },
+    {
+      "description": "Backstop for a prerelease the rule above cannot catch. That pattern reads the version string, so an ecosystem that marks a prerelease some other way slips past it. Renovate also appends its own vulnerability rules after every rule in this file and each one sets allowedVersions to the exact fixed version, so a security fix whose lowest remedy is a prerelease overrides the block and arrives as a pull request. In both cases this keeps it off automerge, restores the draft state and labels it. dependencyDashboardApproval is not used, because Renovate takes that from any one upgrade in a branch and it would stall every unrelated dependency sharing the group, while automerge is taken from every upgrade and so stops the merge alone",
+      "matchNewValue": "/-(?:alpha|beta|canary|dev|next|preview|pre|rc|snapshot)[.\\-]?\\d*$/i",
+      "automerge": false,
+      "draftPR": true,
+      "addLabels": [
+        "prerelease"
+      ]
     }
   ]
 }
