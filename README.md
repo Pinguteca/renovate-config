@@ -35,6 +35,7 @@ The main Renovate configuration file. It extends Renovate's best practices prese
 - Does not separate minor and patch updates, so they share one PR
 - Separates major updates into their own PR, including out of ecosystem groups
 - Separates each major version into its own PR when a dependency is several majors behind
+- Skips prereleases entirely, so only stable releases are ever proposed
 
 **Dependency Labels & Workflow:**
 
@@ -47,7 +48,7 @@ The main Renovate configuration file. It extends Renovate's best practices prese
 
 **Security Features:**
 
-- Security vulnerability alerts automatically merged
+- Security vulnerability fixes created immediately and automerged below major
 - Vulnerability fix strategy set to `lowest` for minimal disruption
 - Security-related PRs labeled with `security` tag
 - OSV vulnerability alerts enabled, widening coverage beyond GitHub advisories
@@ -378,6 +379,39 @@ Since digest updates are also automerged, a compromised upstream tag would be pi
 This is an accepted trade-off, not an oversight. To close it, drop `digest` from the `matchUpdateTypes` of the automerge rule in `default.json`, so digest refreshes become pull requests a person reviews. Expect real volume if you do: base images are rebuilt often, and unreviewed pull requests that pile up turn into stale images, which is its own security problem.
 
 Narrowing the exemption to a curated list of trusted registries was considered and rejected. Keeping such a list current is its own maintenance burden, and it would buy little: digest refreshes already bypass the cooldown for every registry, and those are how vendor CVE fixes ship. A list would only accelerate version bumps by seven days.
+
+### Prereleases
+
+Prereleases are skipped. They produce no branch, no pull request and no Dependency Dashboard entry.
+
+`ignoreUnstable` is `true`, so a dependency on a stable version is never offered a prerelease. It does nothing for a dependency that already sits on one. Renovate keeps following that track, and `v4.0.0-rc.7` to `v4.0.0-rc.9` classifies as a `patch`, so the automerge rule took it.
+
+The cooldown makes this worse. Under `internalChecksFilter: "strict"` every release still inside the [minimum release age](#minimum-release-age) is dropped, so the newest *eligible* version can be a prerelease while the stable release waits out the window. That is what happened with `go.yaml.in/yaml/v4`. `v4.0.0-rc.9` shipped on 2 November 2026 and `v4.0.0` on 4 November, so on 9 November the lookup reported `"pendingVersions": ["v4.0.0"]` and merged `rc.9`.
+
+`default.json` now carries an `allowedVersions` rule with a negated pattern. `allowedVersions` is applied in `filterVersions` before any update object is built, so a filtered version cannot reach a branch, a pull request or the dashboard. Rerunning the same case confirms it: the rc candidates disappear and `v4.0.0` becomes the only update, carrying `"pendingChecks": true` until its own cooldown clears.
+
+The pattern covers three forms:
+
+| Form | Example | Ecosystems |
+| --- | --- | --- |
+| Hyphen or dot suffix | `v4.0.0-rc.9`, `1.0.0-beta.2`, `3.0.0-SNAPSHOT`, `1.0.0.RC1` | semver, Go, npm, NuGet, Maven, container tags |
+| Multi-segment suffix | `9.0.0-preview.1.24081.5`, `8.0.0-rc.2.23480.2` | NuGet |
+| Attached suffix | `1.0.0rc1`, `1.0b2`, `1.0.dev1` | PEP 440 |
+
+It is anchored at the end, which is what keeps it from eating stable versions. Checked against Renovate's own `getRegexPredicate` over 54 cases, these all stay allowed: `1.29-alpine`, `17.6-bookworm`, `1.2.3-musl`, `12.3.0-devel-ubuntu22.04`, `1.0.0-r1`, `2026-02-08`, the openssl letter releases `1.1.1a` and `1.1.1w`, and Go pseudo-versions such as `v0.0.0-20230101120000-0a1b234567`.
+
+> [!NOTE]
+> The anchor cuts both ways. A prerelease carrying a trailing variant, such as `1.0.0-rc1-alpine`, is still allowed through. That is the safe direction to fail: a missed prerelease arrives as a reviewable pull request, while an over-broad pattern silently freezes a stable dependency with nothing on the dashboard to show for it.
+>
+> The pattern uses no lookaround and no backreference, so RE2 and the RegExp fallback agree on it.
+
+> [!IMPORTANT]
+> A security fix is never blocked by this. Renovate appends its own vulnerability rules after every rule in `default.json` (`vulnerabilities.js:67`) and each one sets `allowedVersions` to the exact fixed version, which wins as the later rule. If an advisory is only fixed in a prerelease, that version is allowed through and the final rule in `default.json` keeps it off automerge, restores the draft state and labels it `prerelease`.
+
+> [!NOTE]
+> `respectLatest` is also stated explicitly. npm publishes prereleases under the `next` dist-tag instead of `latest`, so for npm it filters the same versions a second time.
+
+To follow a prerelease track in one repository, override `allowedVersions` in a later rule there. Setting it to `"*"` restores Renovate's own behaviour, which still has `ignoreUnstable` in front of it.
 
 ### Security Auto-merge
 
