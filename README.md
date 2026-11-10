@@ -240,6 +240,28 @@ The symptom is quiet when they get it wrong. The dependency still updates, it ju
 
 `prek` needs two names, because the backends disagree on the package. A bare `prek`, `aqua:j178/prek` and `ubi:j178/prek` all resolve to `j178/prek`, while `pipx:prek` resolves to `prek` on PyPI.
 
+### mise version prefixes
+
+The mise manager only sets `extractVersion` when a tool declares a `version_prefix` option. Without one, a GitHub release tag is written back verbatim, so a tool pinned `1.29.1` can be rewritten as `v1.29.2`.
+
+Whether that bites depends on the lock file. With no `mise.lock` the written value drops the `v`. With one it keeps it, and mise then refuses to install:
+
+```
+mise  mr-boxington@v1.29.2   failed: mr-boxington@v1.29.2 is not in the lockfile
+mise  ERROR Failed to install packslip:github.com/jdx/mr-boxington@v1.29.2
+```
+
+The Renovate artifact update fails along with it, so the lock file is never regenerated and the PR lands with the manifest and the lock disagreeing.
+
+`mise-config` strips an optional leading `v` for mise tools on the GitHub datasources. `matchCurrentValue` limits it to pins that already start with a digit, so a tool written with a deliberate prefix keeps it. Checked on a fixture using a real `mise.lock`:
+
+| Tool | Pinned | Without the rule | With the rule |
+| --- | --- | --- | --- |
+| `mr-boxington` | `1.29.1` | `v1.30.0` | `1.30.0` |
+| `jactionlint` | `2.4.0` | `v2.5.0` | `2.5.0` |
+| `"github:jdx/hk"` | `v2.11.0` | `v2.12.0` | `v2.12.0` |
+| `trivy` | `0.76.1` | `0.76.2` | `0.76.2` |
+
 ### Azure DevOps
 
 `azure-devops-config` sets `azureWorkItemType` to `Task`. Renovate has no issue concept on Azure DevOps, so it stores the Dependency Dashboard as a work item. The default type is `Issue`, which only exists in the `Basic` process. `Task` exists in `Basic`, `Agile` and `Scrum` alike.
