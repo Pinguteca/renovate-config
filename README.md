@@ -223,6 +223,23 @@ The rule matches only names without a slash. mise rejects a channel in the tool 
 > }
 > ```
 
+### mise backend prefixes
+
+A mise tool can be pinned several ways, and they are not interchangeable to Renovate. The manager keeps the backend prefix in `depName` and resolves the real package into `packageName`:
+
+| Written in a mise config | `depName` | `packageName` |
+| --- | --- | --- |
+| `hk = "2.11.0"` | `hk` | `jdx/hk` |
+| `"aqua:jdx/hk" = "2.11.0"` | `aqua:jdx/hk` | `jdx/hk` |
+| `"ubi:jdx/hk" = "2.11.0"` | `ubi:jdx/hk` | `jdx/hk` |
+| `"github:jdx/hk" = "v2.11.0"` | `github:jdx/hk` | `jdx/hk` |
+
+A rule written against `matchDepNames` therefore catches only the one spelling it was written for. `hk-config` and `pre-commit-config` both match `packageName` for this reason, the same point the [conda note](#conda-tools-mise) makes about the `conda:` prefix.
+
+The symptom is quiet when they get it wrong. The dependency still updates, it just leaves its group. `hk` 2.11.1 arrived as a PR that touched `hk.pkl` alone, while the `"aqua:jdx/hk"` pin went out in the general mise PR, which is the drift the group exists to prevent.
+
+`prek` needs two names, because the backends disagree on the package. A bare `prek`, `aqua:j178/prek` and `ubi:j178/prek` all resolve to `j178/prek`, while `pipx:prek` resolves to `prek` on PyPI.
+
 ### Azure DevOps
 
 `azure-devops-config` sets `azureWorkItemType` to `Task`. Renovate has no issue concept on Azure DevOps, so it stores the Dependency Dashboard as a work item. The default type is `Issue`, which only exists in the `Basic` process. `Task` exists in `Basic`, `Agile` and `Scrum` alike.
