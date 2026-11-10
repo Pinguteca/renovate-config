@@ -469,10 +469,28 @@ Security fixes skip the [minimum release age](#minimum-release-age) and are crea
 
 ### Lock File Maintenance
 
-Refreshes lock files on a schedule and automerges the result.
+Refreshes lock files with no schedule window, the same as every other update here, and merges the result once checks pass.
+
+Renovate defaults `lockFileMaintenance.schedule` to `before 4am on monday`, so this is the one place a merge window survived the decision recorded under [Schedules](#schedules). It is overridden rather than inherited, for the same reason: the window added latency without adding safety. A refresh now lands as soon as a transitive version moves and CI passes.
+
+> [!WARNING]
+> `minimumReleaseAge` is cleared inside `lockFileMaintenance`, and without that the pull request never merges.
+>
+> A lock file maintenance branch moves to no single release, so it carries no `releaseTimestamp`. `checkUpgradeMinimumReleaseAge` applies `minimumReleaseAgeBehaviour: "timestamp-required"` to it, which marks the branch pending, and `renovate/stability-days` reports "Updates have not met minimum release age requirement" forever. There is an escape hatch right beside it for a package manager that enforces the age itself, but no manager implements `enforcesMinimumReleaseAge` yet, so it never fires.
+>
+> The symptom is a pull request where every real check passes and only the Renovate one is stuck. One sat open for 51 days before this was found.
+>
+> Clearing the value removes a gate that was never ageing anything. A lock refresh resolves transitive versions that carry no timestamps for Renovate to measure, so the cooldown was not being applied to them either way.
+
+Tool and dependency updates carry their own lock file changes, so the lock never drifts on their account. A mise tool bump rewrites `mise.lock` in the same commit, and the same holds for the other managers. Maintenance exists only for the transitive versions that no manifest change touches, which is why running it continuously rather than weekly keeps that gap small.
 
 > [!NOTE]
-> Renovate commits a manifest change and its lock file in the same commit, so the two do not drift under normal operation. They can drift when the artifact update itself fails, for example a missing toolchain or a private registry the runner cannot authenticate against. Renovate reports that as a warning in the PR body instead of failing the PR, so consuming repositories should enforce it in CI with a locked install such as `npm ci`, `uv lock --check`, `go mod verify` or `dotnet restore --locked-mode`.
+> Frequency is the only exposure control here, because `minimumReleaseAge` cannot gate a lock refresh at all. A refresh resolves whatever is newest when it runs, so a weekly job sampled that once a week and a continuous one samples it as soon as something moves. Raising the frequency therefore picks up new transitive versions sooner. The trade-off is the same one accepted for [digests](#digests-and-the-minimum-release-age), and the counterweight is the same: each refresh is a reviewable commit that CI has to pass.
+>
+> It also costs CI. A lock refresh runs the full pipeline, so a repository whose transitive dependencies move several times a day will see that many runs. If that becomes the binding constraint, bound it per repository with `"lockFileMaintenance": { "schedule": ["before 4am"] }` for a daily cadence, which keeps the sync far tighter than weekly.
+
+> [!NOTE]
+> Renovate commits a manifest change and its lock file in the same commit, so the two do not drift under normal operation. They can drift when the artifact update itself fails, for example a missing toolchain, a private registry the runner cannot authenticate against, or a value the package manager rejects. Renovate reports that as a warning in the PR body instead of failing the PR, so consuming repositories should enforce it in CI with a locked install such as `npm ci`, `uv lock --check`, `go mod verify` or `dotnet restore --locked-mode`.
 
 ## Extending This Configuration
 
