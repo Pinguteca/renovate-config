@@ -25,6 +25,18 @@
       "groupName": "Mise updates"
     },
     {
+      "description": "Keep the written version prefix stable for mise tools backed by GitHub. The mise manager only sets extractVersion when the tool declares a version_prefix option, so a tool pinned without a v but released as a v tag gets rewritten with the prefix added. It only shows up once a mise lock file exists: without one the written value drops the v, with one it keeps it. mise then refuses the result, because the lock file has no entry for the prefixed version, and both the Renovate artifact update and CI fail. A real case was mr-boxington, pinned 1.29.1 and rewritten v1.29.2, where mise reported that v1.29.2 is not in the lockfile. matchCurrentValue limits this to pins that start with a digit, so a tool written with a deliberate v, such as github:jdx/hk = v2.11.0, keeps it. The optional v in the pattern means a release with no prefix still matches and passes through unchanged",
+      "matchManagers": [
+        "mise"
+      ],
+      "matchDatasources": [
+        "github-releases",
+        "github-tags"
+      ],
+      "matchCurrentValue": "/^\\d/",
+      "extractVersion": "^v?(?<version>.+)"
+    },
+    {
       "description": "Resolve bare mise conda tools (conda:) through the prefix.dev conda-forge channel. The mise manager passes a bare package name, which the conda datasource cannot look up without a channel, so it fails with no result. Restricted to names without a channel: an entry such as conda:bioconda/samtools already carries its own channel and resolves unaided, and forcing a registryUrl onto it doubles the channel and breaks the lookup. Scoped to the mise manager so it cannot override the per-file channels that pixi derives from pixi.toml",
       "matchManagers": [
         "mise"
