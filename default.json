@@ -73,7 +73,12 @@
   "lockFileMaintenance": {
     "enabled": true,
     "draftPR": false,
-    "automerge": true
+    "automerge": true,
+    "schedule": [
+      "at any time"
+    ],
+    "minimumReleaseAge": null,
+    "description": "Refresh lock files with no schedule window, the same as every other update here, and merge once checks pass. Renovate defaults this to before 4am on monday, which is the one place a window survived, so it is overridden rather than inherited. Tool and dependency updates already rewrite their own lock files in the same commit, so this only covers the transitive versions no manifest change touches, and running it continuously keeps that gap small instead of sampling it once a week. minimumReleaseAge is cleared on purpose. A lock file maintenance branch moves to no single release, so it carries no releaseTimestamp, and checkUpgradeMinimumReleaseAge applies minimumReleaseAgeBehaviour timestamp-required to it, which marks the branch pending. The renovate/stability-days check then never turns green. The escape hatch next to it, for a package manager that enforces the age itself, cannot help because no manager implements enforcesMinimumReleaseAge yet. Left inherited, the pull request sits with every real check passing and that one stuck, and it never merges. Clearing it removes a gate that was never ageing anything, because the transitive versions a refresh picks up carry no timestamps for Renovate to measure"
   },
   "hostRules": [
     {
