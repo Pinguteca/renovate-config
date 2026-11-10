@@ -18,12 +18,12 @@
   ],
   "packageRules": [
     {
-      "description": "Bump the hk tool and the hk.pkl Pkl package in one PR so they stay in sync, majors included",
+      "description": "Bump the hk tool and the hk.pkl Pkl package in one PR so they stay in sync, majors included. The match is on packageName and not depName, which is what makes it work for every way the tool can be pinned. The mise manager keeps the backend prefix in depName, so aqua:jdx/hk, ubi:jdx/hk and github:jdx/hk each read as a different name, while packageName resolves to jdx/hk in all of them and in a bare hk through the mise registry. The bare hk entry stays in the list as a fallback, for the case where the registry lookup fails and packageName falls back to depName",
       "matchManagers": [
         "mise",
         "custom.regex"
       ],
-      "matchDepNames": [
+      "matchPackageNames": [
         "jdx/hk",
         "hk"
       ],

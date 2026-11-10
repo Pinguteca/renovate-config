@@ -55,11 +55,12 @@
       "groupName": "Pre-commit updates"
     },
     {
-      "description": "Label the prek runner itself when it is installed as a mise tool",
+      "description": "Label the prek runner itself when it is installed as a mise tool. The match is on packageName and not depName, because the mise manager keeps the backend prefix in depName and a rule written against one spelling misses the rest. prek needs two names here, since the backends disagree on the package: a bare prek, aqua:j178/prek and ubi:j178/prek all resolve to j178/prek, while pipx:prek resolves to prek on PyPI",
       "matchManagers": [
         "mise"
       ],
-      "matchDepNames": [
+      "matchPackageNames": [
+        "j178/prek",
         "prek"
       ],
       "addLabels": [
