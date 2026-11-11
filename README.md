@@ -109,7 +109,7 @@ A **floor** says *the oldest toolchain a consumer of this package may use*. It i
 | Language | Floor (published contract) | Renovate sees it? | Selector (what this repo builds with) |
 | --- | --- | --- | --- |
 | Go | `go` directive in each `go.mod` | yes, dependency-driven | `go` in `mise.toml`, with `go.work` at or below it |
-| .NET | `TargetFramework` in the project file | no | `sdk.version` in `global.json` |
+| .NET | `TargetFramework` in the project file, and `sdk.version` in `global.json` for build agents | `TargetFramework` no, `sdk.version` yes | whichever SDK `rollForward` resolves to |
 | Node | `engines` in `package.json` | yes | `volta`, `packageManager`, `.nvmrc`, `.node-version`, `.bun-version` |
 | Rust | `rust-version` in `Cargo.toml` | no | `rust-toolchain.toml` |
 | Python | `requires-python` in `pyproject.toml` | no | `.python-version`, or `python` in `mise.toml` |
@@ -180,9 +180,47 @@ The `nuget` manager already covers more than project files: `global.json` (both 
 The preset separates three things that would otherwise land in one pull request:
 
 - **Runtime-aligned packages** (`Microsoft.AspNetCore.*`, `Microsoft.EntityFrameworkCore.*`, `Microsoft.Extensions.*`, `System.*`) are grouped together, majors included. These ship in lockstep with the .NET major, so a pull request that moves some to the next major and leaves the rest behind will not build.
-- **The SDK pin** in `global.json` leaves the package groups. It is the .NET toolchain selector, not a package update. Where a repository also repeats the version as a `dotnet` entry in `mise.toml`, a custom manager resolves that entry and both files share a **.NET SDK toolchain** group, majors included. The custom manager is needed because the `mise` manager extracts the entry but has no datasource for it, and skips it as `unsupported-datasource`, so it would never move. The better end state is to delete the `mise.toml` entry and let mise read `global.json`. The group is a guard for repositories that have not migrated yet.
+- **The SDK pin** in `global.json` leaves the package groups and gets a versioning that matches how .NET actually ships. `rollForward` defaults to `latestPatch`, so the written version is the oldest SDK every machine and build agent must already have, not the one the build uses. The feature band is the compatibility boundary, so the preset makes the band the minor. A move inside a band automerges, a band change is held. Where a repository also repeats the version as a `dotnet` entry in `mise.toml`, a custom manager resolves that entry and both files share a **.NET SDK toolchain** group, majors included. The custom manager is needed because the `mise` manager extracts the entry but has no datasource for it, and skips it as `unsupported-datasource`, so it would never move. The better end state is to delete the `mise.toml` entry and let mise read `global.json`. The group is a guard for repositories that have not migrated yet.
 - **MSBuild SDKs** likewise, as build infrastructure.
 - **gRPC code generation.** `Grpc.Tools` generates the C# from the protos at build time, and `Grpc.*` and `Google.Protobuf` are the runtime that generated code calls into. They share a **gRPC codegen and runtime** group, majors included, so a major cannot advance the generator and leave the runtime a major behind. The pull request carries a note reminding whoever merges it to move the matching `buf.build/protocolbuffers/csharp` and `buf.build/grpc/csharp` pins, which Renovate cannot see.
+
+> [!IMPORTANT]
+> `global.json` sets the **minimum** SDK, not an exact one. `rollForward` defaults to `latestPatch`, so the pinned version is the oldest SDK the build accepts and the installed SDK rolls forward from there. Raising it raises the floor for every machine and build agent.
+>
+> That floor has a ceiling Renovate cannot see. An SDK feature band has a minimum Visual Studio version, and a build that drives MSBuild from Visual Studio instead of the `dotnet` CLI is capped by the agent image:
+>
+> | SDK feature band | Ships with VS | Minimum VS |
+> | --- | --- | --- |
+> | `10.0.1xx` | 18.0 | **17.14** |
+> | `10.0.2xx` | 18.4 | 18.0 |
+> | `10.0.3xx` | 18.6 | 18.0 |
+> | `10.0.4xx` | 18.9 | 18.0 |
+>
+> On an Azure Pipelines Windows agent carrying MSBuild 17.14, a `global.json` moved to `10.0.404` fails at restore:
+>
+> ```
+> error : Could not resolve SDK "Microsoft.NET.Sdk".
+> error :   Version 10.0.404 of the .NET SDK requires at least version 18.0.0 of MSBuild.
+>            The current available version of MSBuild is 17.14.60.43110.
+> ```
+>
+> The `dotnet` CLI carries its own MSBuild, so a repository that restores and builds with `DotNetCoreCLI@2` is unaffected. `VSBuild@1`, `MSBuild@1` and a `NuGetCommand@2` restore all go through the agent's Visual Studio and are not.
+>
+> Stock semver calls `10.0.100` to `10.0.404` a **patch**, which is how a band change merges unattended and breaks such a build. `dotnet-config` therefore gives `dotnet-sdk` a regex versioning that makes the feature band the minor:
+>
+> ```
+> regex:^(?<major>\d+)\.\d+\.(?<minor>\d+)(?<patch>\d{2})(-(?<prerelease>.+))?$
+> ```
+>
+> Checked against Renovate's own versioning API and `applyPackageRules`:
+>
+> | transition | updateType | automerge |
+> | --- | --- | --- |
+> | `10.0.401` to `10.0.404`, inside a band | `patch` | yes |
+> | `10.0.100` to `10.0.200`, needs VS 18.0 | `minor` | no, draft PR |
+> | `10.0.404` to `11.0.100` | `major` | no, draft PR |
+>
+> The hold itself lives in `default.json`, not in the preset, because a preset's `packageRules` resolve before the parent's and the general automerge rule would otherwise win. No per-repository `allowedVersions` cap is needed, and one would misbehave anyway, since a range is read through whatever versioning is in force. The group also carries both points as `prBodyNotes`.
 
 > [!WARNING]
 > `/^Grpc\./` is broad on purpose. Every package it matches today sits on the grpc-dotnet 2.x release line, including `Grpc.Tools`, `Grpc.StatusProto` and `Grpc.AspNetCore.HealthChecks`. A repository that still pulls the legacy `Grpc.Core` (2.46.x, deprecated) would be dragged into the group behind a version train it does not follow. Exclude it there if that comes up.
