@@ -182,6 +182,7 @@ The preset separates three things that would otherwise land in one pull request:
 - **Runtime-aligned packages** (`Microsoft.AspNetCore.*`, `Microsoft.EntityFrameworkCore.*`, `Microsoft.Extensions.*`, `System.*`) are grouped together, majors included. These ship in lockstep with the .NET major, so a pull request that moves some to the next major and leaves the rest behind will not build.
 - **The SDK pin** in `global.json` leaves the package groups and gets a versioning that matches how .NET actually ships. `rollForward` defaults to `patch`, which takes the exact version when it is installed and the newest patch in the same feature band when it is not, so the written version is the oldest SDK every machine and build agent must already have, not the one the build uses. The feature band is the compatibility boundary, so the preset makes the band the minor. A move inside a band automerges, a band change is held. Where a repository also repeats the version as a `dotnet` entry in `mise.toml`, a custom manager resolves that entry and both files share a **.NET SDK toolchain** group, majors included. The custom manager is needed because the `mise` manager extracts the entry but has no datasource for it, and skips it as `unsupported-datasource`, so it would never move. The better end state is to delete the `mise.toml` entry and let mise read `global.json`. The group is a guard for repositories that have not migrated yet.
 - **The SDK container image** joins that same group. `mcr.microsoft.com/dotnet/sdk` tags carry the full SDK version, feature band included, so a tag naming one gets the same band-as-minor versioning and moves in the same pull request as `global.json`. A floating tag such as `10.0` keeps `docker` versioning, because it has no band to hold. The `aspnet` and `runtime` images stay in **Container image updates**, since they track the runtime version rather than the SDK band and their only coupling to the SDK is the major, which never automerges. On a major Renovate offers only tags sharing the current variant suffix, so a `FROM` line on `-noble` will not move to the `-resolute` tags the .NET 11 images switched to. That one is chosen by hand, and the pull request says so.
+- **A version hardcoded in an Azure Pipelines task input** joins the group too, through the annotation comment described under [Azure DevOps](#azure-devops). The pipeline, `global.json` and the SDK image then move in one pull request.
 - **MSBuild SDKs** likewise, as build infrastructure.
 - **gRPC code generation.** `Grpc.Tools` generates the C# from the protos at build time, and `Grpc.*` and `Google.Protobuf` are the runtime that generated code calls into. They share a **gRPC codegen and runtime** group, majors included, so a major cannot advance the generator and leave the runtime a major behind. The pull request carries a note reminding whoever merges it to move the matching `buf.build/protocolbuffers/csharp` and `buf.build/grpc/csharp` pins, which Renovate cannot see.
 
@@ -355,6 +356,27 @@ The Renovate artifact update fails along with it, so the lock file is never rege
 It updates pipeline tasks, images in `resources.containers`, and GitHub repository resources pinned to a tag. It does **not** update `pool.vmImage`, Azure-hosted repositories in `resources.repositories`, or the root `container:` element of a container job.
 
 File patterns add to the defaults instead of replacing them, so this preset adds `ci/` on top of the built-in `azure-pipelines.yml` and `.azure-pipelines/**` patterns.
+
+#### Versions hardcoded in task inputs
+
+The manager reads `resources.repositories`, `resources.containers` and the `Name@Version` of each step. A version inside `inputs` is invisible to it, so a `UseDotNet@2` carrying `version: '10.0.404'` never moves and drifts behind `global.json`.
+
+A custom manager in this preset picks those up from Renovate's standard annotation comment, applied to the key on the next line:
+
+```yaml
+- task: UseDotNet@2
+  inputs:
+    packageType: sdk
+    # renovate: datasource=dotnet-version depName=dotnet-sdk
+    version: '10.0.404'
+```
+
+Naming `dotnet-sdk` as the `depName` puts the pipeline in the same **.NET SDK toolchain** group as `global.json` and the SDK container image, so one pull request moves all three.
+
+The rule matches any key, so `versionSpec` under `NodeTool@0` and plain `FOO_VERSION:` variables are covered by the same annotation. The grammar is Renovate's own, including the optional `packageName=`, `versioning=`, `extractVersion=` and `registryUrl=` fields.
+
+> [!NOTE]
+> The comment is what binds the two lines, so an unannotated input is left alone. That is a decision rather than a limitation. `matchStrings` compile under RE2, which has no lookahead, so no pattern can reliably find where a task block ends, and a mis-bound rewrite would land in the pipeline that ships the repository. Where the repository has a `global.json`, prefer `useGlobalJson: true` and annotate nothing.
 
 #### Agent images
 
