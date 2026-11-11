@@ -378,6 +378,11 @@ The rule matches any key, so `versionSpec` under `NodeTool@0` and plain `FOO_VER
 > [!NOTE]
 > The comment is what binds the two lines, so an unannotated input is left alone. That is a decision rather than a limitation. `matchStrings` compile under RE2, which has no lookahead, so no pattern can reliably find where a task block ends, and a mis-bound rewrite would land in the pipeline that ships the repository. Where the repository has a `global.json`, prefer `useGlobalJson: true` and annotate nothing.
 
+None of this reaches a classic pipeline. Its definition lives in the Azure DevOps database rather than in the repository, so there is no file to annotate and no manager that can see it. `useGlobalJson` is the way back in: it is an ordinary task input, so the designer offers it the same as YAML does, and the SDK version then comes from a file Renovate does manage. The task reads `sdk.rollForward` from that file, so a `global.json` carrying `"rollForward": "disable"` installs exactly the pinned SDK.
+
+> [!WARNING]
+> Point it at a `global.json` that actually carries `sdk.version`. Against one holding only `msbuild-sdks`, the task is [reported](https://github.com/microsoft/azure-pipelines-tasks/issues/22746) to log a warning, install nothing and still report success.
+
 #### Agent images
 
 Prefer `ubuntu-latest`, `windows-latest` and `macos-latest` over a pinned `vmImage`. Renovate cannot maintain a pinned one. The `-latest` alias is the only thing that tracks the signal that matters, because Microsoft moves it when the image is actually available on their hosted agents.
