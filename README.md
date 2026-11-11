@@ -134,6 +134,39 @@ idiomatic_version_file_enable_tools = ["dotnet", "rust", "python"]
 
 With that in place, `mise current dotnet` resolves from `global.json` and `mise current rust` from `rust-toolchain.toml`. It is off by default in mise and opts in per tool, so you have to name each one. Put it in the repository's own `mise.toml` to make it portable. Setting it per machine brings back the drift it was meant to remove.
 
+> [!WARNING]
+> This has a trap wherever `mise.lock` exists, and it is bad enough to outweigh the drift it removes.
+>
+> Enabling a tool here makes the ecosystem's file a mise tool source, so `mise.lock` gains an entry for it. Nothing then refreshes that entry. Renovate dispatches `updateArtifacts` per manager over the upgrades in a branch, and builds its manager list from those upgrades alone:
+>
+> ```js
+> // workers/repository/update/branch/get-updated.js
+> for (const upgrade of config.upgrades) {
+>   managerPackageFiles[upgrade.manager] ??= new Set();
+>   managerPackageFiles[upgrade.manager].add(upgrade.packageFile);
+> }
+> ```
+>
+> A branch that bumps `global.json` carries one `nuget` upgrade, so `mise` is never a key and its artifact update never runs. `jdx/mise-action` then adds `--locked` on its own whenever a lock file is present, whatever the repository's `locked` setting says, and the install fails:
+>
+> ```
+> mise ERROR Failed to install core:dotnet@10.0.403: dotnet@10.0.403 is not in the lockfile
+> ```
+>
+> The pull request cannot merge, so the pin stalls and the repository falls further behind with every release.
+>
+> Pinning in `mise.toml` instead does not help. The entry is `unsupported-datasource` to the mise manager, so the custom manager in `dotnet-config` owns it, and a `custom.regex` upgrade does not run mise's artifact update either. There is no arrangement today in which Renovate refreshes `mise.lock` for the .NET SDK.
+>
+> Checked against mise 2026.11.6 on an isolated fixture: with `locked = true` a stale lock is fatal, and with `locked = false` mise resolves the new version and rewrites the lock itself. `prefer_offline` and `minimum_release_age` make no difference either way.
+>
+> The same applies to `rust` and `python`, because `rust-toolchain.toml` and `.python-version` are owned by the `rust-toolchain` and `pyenv` managers, which are not the mise manager either.
+>
+> Installing the toolchain from CI instead, with something like `actions/setup-dotnet`, is not the answer. mise runs in CI precisely so task definitions stay independent of the CI system, and a GitHub Actions step would break that for every repository that also builds on Azure Pipelines.
+>
+> Until that lands, a repository with both a `mise.lock` and `dotnet` in `idiomatic_version_file_enable_tools` will see its SDK pull requests fail at the mise install step, whatever the automerge policy says. Either drop the tool from that list and pin it in `mise.toml`, where the custom manager moves it and a person refreshes the lock, or accept that the pin moves by hand until the manager can own it.
+>
+> The underlying gap is upstream and small. Renovate's mise manager has no entry for `dotnet`, so the tool is `unsupported-datasource` and the mise manager can never own the dep. Renovate already ships a `dotnet-version` datasource, whose `fetchReleases` accepts the package names `dotnet-sdk` and `dotnet-runtime`. Adding `dotnet` to `miseCoreTooling` with `packageName: "dotnet-sdk"` and that datasource, and adding the datasource to the `core` backend list, would let the mise manager own a `mise.toml` pin and refresh the lock through its own `updateArtifacts`.
+
 > [!NOTE]
 > `go.work` is not a floor, and Renovate does not track it. Nothing published reads it, and under the default `GOTOOLCHAIN=auto` a `go` line above the installed toolchain makes Go quietly download another one. Keep it equal to the highest module floor and set `GOTOOLCHAIN=local`, so an overshoot fails with a clear error.
 
