@@ -121,9 +121,10 @@
       "draftPR": true
     },
     {
-      "description": "Hold a .NET SDK feature band change, and a major with it. dotnet-config gives dotnet-sdk a versioning that treats the feature band as the minor, because stock semver reads 10.0.100 to 10.0.404 as a patch and would merge it unattended, while a band carries a minimum Visual Studio version that Renovate cannot see. A move inside a band, such as 10.0.401 to 10.0.404, stays a patch and still merges on its own. This rule lives here and not in dotnet-config because a preset's packageRules resolve before the parent's, so the automerge rule above would win over anything the preset set",
+      "description": "Hold a .NET SDK feature band change, and a major with it. dotnet-config gives both the global.json selector and the SDK container image a versioning that treats the feature band as the minor, because stock semver reads 10.0.100 to 10.0.404 as a patch and would merge it unattended, while a band carries a minimum Visual Studio version that Renovate cannot see and has to match the band the rest of the repository asks for. A move inside a band, such as 10.0.401 to 10.0.404, stays a patch and still merges on its own. This rule lives here and not in dotnet-config because a preset's packageRules resolve before the parent's, so the automerge rule above would win over anything the preset set",
       "matchPackageNames": [
-        "dotnet-sdk"
+        "dotnet-sdk",
+        "/(?:^|/)dotnet/sdk$/"
       ],
       "matchUpdateTypes": [
         "minor",

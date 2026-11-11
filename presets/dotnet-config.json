@@ -102,6 +102,34 @@
       ]
     },
     {
+      "description": "The SDK container image carries the same feature band as global.json and the two have to agree. rollForward defaults to patch, which rolls forward only inside the band, so an image whose only SDK is 10.0.404 cannot satisfy a global.json asking for 10.0.100 and the build fails inside the container with Could not resolve SDK Microsoft.NET.Sdk. Joining the selector's group makes one pull request move both. Matching on the repository path rather than the full reference covers a mirror or a registry alias. The aspnet and runtime images stay in the container group on purpose, because they track the runtime version rather than the SDK band and their only coupling to the SDK is the major, which never automerges. kubernetes-config is extended after this preset, so an SDK image declared in a Kubernetes manifest is still regrouped there, which is the right trade for an image that does not run in a cluster",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "/(?:^|/)dotnet/sdk$/"
+      ],
+      "groupName": ".NET SDK toolchain",
+      "addLabels": [
+        "dotnet-sdk",
+        "toolchain"
+      ],
+      "prBodyNotes": [
+        "{{#if isMajor}}Renovate only offers a container tag that shares the current variant suffix, so the `FROM` line will not cross from one base distro to another on its own. The .NET 11 images replaced `noble` with `resolute`. Pick the new variant by hand in this pull request, or the image stays a major behind `global.json`.{{/if}}"
+      ]
+    },
+    {
+      "description": "Give an SDK image tag that carries the full version the same band-as-minor versioning as global.json, so 10.0.403 to 10.0.404 stays a patch and 10.0.303 to 10.0.400 reads as a minor that the hold rule in default.json catches. compatibility takes the place of prerelease here, because a container tag ends in a variant and Renovate only offers a candidate whose compatibility group matches. That keeps 10.0.404-noble on noble tags, and drops 10.0.100-preview.1-noble, which reads as a different variant. A floating tag such as 10.0 or 10.0-noble keeps docker versioning, because it has no band to hold and already resolves to the newest SDK in its major",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "/(?:^|/)dotnet/sdk$/"
+      ],
+      "matchCurrentValue": "/^\\d+\\.\\d+\\.\\d{3}(?:-|$)/",
+      "versioning": "regex:^(?<major>\\d+)\\.\\d+\\.(?<minor>\\d+)(?<patch>\\d{2})(?:-(?<compatibility>.+))?$"
+    },
+    {
       "description": "MSBuild SDKs in global.json are build infrastructure, so keep them out of the package groups too",
       "matchDepTypes": [
         "msbuild-sdk"
