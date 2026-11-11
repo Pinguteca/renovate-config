@@ -86,14 +86,19 @@
       ]
     },
     {
-      "description": "Where the SDK is still pinned in both global.json and mise.toml, these are one toolchain selector written twice and must move in one PR, majors included. Grouping only keeps Renovate's own edits in step, never hand edits, so treat it as a guard while repos migrate to the single global.json selector rather than the end state. Keep this rule after the package groups so the selector leaves them",
-      "matchDepNames": [
+      "description": "The SDK selector, kept out of the package groups and given a versioning that matches how .NET actually ships. global.json sets the oldest SDK every machine and build agent must already have, because rollForward defaults to latestPatch, and the feature band is the real compatibility boundary: Microsoft keys the minimum Visual Studio version to it, so 10.0.1xx is the last band that runs on VS 17.14 while 10.0.2xx and later need VS 18.0. Stock semver reads 10.0.100 to 10.0.404 as a patch, which is how a band change merges unattended and breaks a build that drives MSBuild from Visual Studio. The regex versioning here makes the band the minor instead, so a move inside a band stays a patch and a band change reads as a minor that the hold rule in default.json keeps off automerge. Matching packageName and not depName covers both spellings, since global.json emits depName dotnet-sdk while a mise.toml pin would emit dotnet with packageName dotnet-sdk. Keep this rule after the package groups so the selector leaves them",
+      "matchPackageNames": [
         "dotnet-sdk"
       ],
       "groupName": ".NET SDK toolchain",
       "addLabels": [
         "dotnet-sdk",
         "toolchain"
+      ],
+      "versioning": "regex:^(?<major>\\d+)\\.\\d+\\.(?<minor>\\d+)(?<patch>\\d{2})(-(?<prerelease>.+))?$",
+      "prBodyNotes": [
+        "`global.json` sets the **minimum** SDK, not an exact one, because `rollForward` defaults to `latestPatch`. Merging this raises the floor for every machine and build agent that builds this repository.",
+        "If this repository builds through MSBuild or Visual Studio instead of the `dotnet` CLI, which means `VSBuild@1`, `MSBuild@1`, or a `NuGetCommand@2` restore on a Windows agent, then the SDK feature band has a minimum Visual Studio version that Renovate cannot see. `10.0.1xx` is the last band that runs on VS 17.14, and `10.0.2xx` and later need VS 18.0. Overshooting it fails at restore with `Could not resolve SDK \"Microsoft.NET.Sdk\"`. Either move the build to `DotNetCoreCLI@2`, so the SDK brings its own MSBuild and the agent's Visual Studio stops mattering, or cap the band in this repository with `allowedVersions`."
       ]
     },
     {

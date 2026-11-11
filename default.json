@@ -121,6 +121,18 @@
       "draftPR": true
     },
     {
+      "description": "Hold a .NET SDK feature band change, and a major with it. dotnet-config gives dotnet-sdk a versioning that treats the feature band as the minor, because stock semver reads 10.0.100 to 10.0.404 as a patch and would merge it unattended, while a band carries a minimum Visual Studio version that Renovate cannot see. A move inside a band, such as 10.0.401 to 10.0.404, stays a patch and still merges on its own. This rule lives here and not in dotnet-config because a preset's packageRules resolve before the parent's, so the automerge rule above would win over anything the preset set",
+      "matchPackageNames": [
+        "dotnet-sdk"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "major"
+      ],
+      "automerge": false,
+      "draftPR": true
+    },
+    {
       "description": "Skip prereleases outright. ignoreUnstable already keeps a dependency on a stable version from being offered one, but it does nothing for a dependency that already sits on a prerelease: Renovate keeps following that track, and rc.7 to rc.9 classifies as a patch. internalChecksFilter strict compounds it by dropping every release still inside minimumReleaseAge, so the newest eligible version can be a prerelease while the stable one waits out the cooldown. allowedVersions filters candidate releases before any update object is built, so a prerelease produces no branch, no pull request and no Dependency Dashboard entry. The pattern covers the hyphen and dot suffix forms used by semver, NuGet and Maven, and the attached form used by PEP 440. It is anchored at the end, which leaves container variant tags such as alpine, bookworm, musl and devel-ubuntu22.04 alone, along with stable letter releases like openssl 1.1.1a and Go pseudo-versions. The anchor also means a prerelease carrying a trailing variant, such as 1.0.0-rc1-alpine, still gets through, which is the safe direction to fail. It uses no lookaround or backreference, so RE2 and the RegExp fallback agree",
       "matchPackageNames": [
         "*"
