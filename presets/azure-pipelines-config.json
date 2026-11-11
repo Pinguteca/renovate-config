@@ -1,12 +1,27 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Enable the azure-pipelines manager, which is off by default, and keep task references pinned to a major version. Adds ci/ to the built-in file patterns, which are additive rather than replaced. Extend this preset after container-config so images declared in a pipeline group with that pipeline",
+  "description": "Enable the azure-pipelines manager, which is off by default, and keep task references pinned to a major version. Adds ci/ to the built-in file patterns, which are additive rather than replaced. A custom manager picks up versions hardcoded in task inputs, which the manager itself never extracts. Extend this preset after container-config so images declared in a pipeline group with that pipeline",
   "azure-pipelines": {
     "enabled": true,
     "managerFilePatterns": [
       "/(^|/)ci/.+\\.ya?ml$/"
     ]
   },
+  "customManagers": [
+    {
+      "description": "Resolve a version hardcoded in a task input. The azure-pipelines manager only extracts resources.repositories, resources.containers and the Name@Version of a step, so a UseDotNet@2 carrying inputs.version 10.0.404 is invisible and that pin drifts behind global.json forever. This reads the standard Renovate annotation comment and applies it to the key on the next line, which covers version, versionSpec and any other input as well as the FOO_VERSION variables the bundled customManagers:azurePipelinesVersions preset already handles. The comment is what binds the two lines, so nothing is rewritten unless a human asked for it, which matters more here than elsewhere because a mis-bound rewrite lands in the pipeline that ships the repository. A matchString cannot bound a task block on its own, since matchStrings compile under RE2 and it has no lookahead. Naming dotnet-sdk as the depName puts the pipeline in the same .NET SDK toolchain group as global.json and the container image",
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)\\.azuredevops/.+\\.ya?ml$/",
+        "/(^|/)\\.azure-pipelines/.+\\.ya?ml$/",
+        "/azure.*pipelines?.*\\.ya?ml$/",
+        "/(^|/)ci/.+\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>[a-zA-Z0-9-._]+?) depName=(?<depName>[^\\s]+?)(?: (?:lookupName|packageName)=(?<packageName>[^\\s]+?))?(?: versioning=(?<versioning>[^\\s]+?))?(?: extractVersion=(?<extractVersion>[^\\s]+?))?(?: registryUrl=(?<registryUrl>[^\\s]+?))?\\s+[A-Za-z0-9_.-]+?\\s*:\\s*[\"']?(?<currentValue>.+?)[\"']?\\s"
+      ]
+    }
+  ],
   "packageRules": [
     {
       "description": "Azure Pipelines tasks are referenced by major version only. Without this Renovate expands UseDotNet@2 into UseDotNet@2.279.0, which is not valid task syntax and breaks the pipeline",
