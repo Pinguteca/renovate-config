@@ -50,6 +50,14 @@
       "registryUrls": [
         "https://prefix.dev/conda-forge"
       ]
+    },
+    {
+      "description": "Ignore the dependency graph mise generates for a tool on a package-manager backend. Since mise 2026.9.7 that graph lives in a sidecar directory under .mise/locks/<config>/<tool>/<version>/, holding an aube-lock.yaml and a package.json that the npm manager extracts like any other manifest. Nothing reads that manifest as a source of truth. mise regenerates it from the pin in the mise config file, so a bump Renovate makes there is reverted by the next artifact update and proposed again on the following run. In threagile that loop ran four times for oxfmt, each bump undone by the lock file maintenance pull request after it. The pin that matters is the one in the mise config, which the mise manager owns. Both spellings are listed because the directory sits at the repository root as often as it sits under one",
+      "matchFileNames": [
+        ".mise/locks/**",
+        "**/.mise/locks/**"
+      ],
+      "enabled": false
     }
   ]
 }
