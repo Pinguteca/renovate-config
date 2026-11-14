@@ -37,6 +37,32 @@
       "extractVersion": "^v?(?<version>.+)"
     },
     {
+      "description": "Read the tool name off an oxc release tag. mise resolves the bare registry names oxfmt and oxlint to aqua packages under oxc-project/oxc, and the mise manager turns those into a github-tags lookup on the monorepo with the generic v prefix stripped. The repository tags every component separately, as oxfmt_v0.78.0 and oxlint_v1.93.0, so the generic pattern leaves the tool name in the version, nothing parses as a version and the pin never moves. It fails silently: the lookup resolves, reports the current version and returns an empty update list, so there is no warning anywhere. A prefix per tool is needed rather than one generic pattern, because a pattern loose enough to match both would offer oxlint releases to oxfmt. Keep these after the version prefix rule above, which would otherwise win",
+      "matchManagers": [
+        "mise"
+      ],
+      "matchDatasources": [
+        "github-tags"
+      ],
+      "matchPackageNames": [
+        "oxc-project/oxc/oxfmt"
+      ],
+      "extractVersion": "^oxfmt_v(?<version>.+)"
+    },
+    {
+      "description": "The same for oxlint, which shares the oxc monorepo and its per-component tags",
+      "matchManagers": [
+        "mise"
+      ],
+      "matchDatasources": [
+        "github-tags"
+      ],
+      "matchPackageNames": [
+        "oxc-project/oxc/oxlint"
+      ],
+      "extractVersion": "^oxlint_v(?<version>.+)"
+    },
+    {
       "description": "Resolve bare mise conda tools (conda:) through the prefix.dev conda-forge channel. The mise manager passes a bare package name, which the conda datasource cannot look up without a channel, so it fails with no result. Restricted to names without a channel: an entry such as conda:bioconda/samtools already carries its own channel and resolves unaided, and forcing a registryUrl onto it doubles the channel and breaks the lookup. Scoped to the mise manager so it cannot override the per-file channels that pixi derives from pixi.toml",
       "matchManagers": [
         "mise"
