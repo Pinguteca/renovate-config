@@ -341,6 +341,30 @@ The Renovate artifact update fails along with it, so the lock file is never rege
 | `"github:jdx/hk"` | `v2.11.0` | `v2.12.0` | `v2.12.0` |
 | `trivy` | `0.76.1` | `0.76.2` | `0.76.2` |
 
+### mise sidecar lock directories
+
+Since mise 2026.9.7, a tool on a package-manager backend keeps its resolved dependency graph in a sidecar directory, `.mise/locks/<config>/<tool>/<version>/`, holding an `aube-lock.yaml` and a `package.json`. The mise lock file points at it by path and digest.
+
+That `package.json` is generated, but the `npm` manager extracts it like any other manifest, and the two sides then fight:
+
+1. Renovate bumps the tool in the sidecar manifest and the pull request merges.
+2. mise regenerates the sidecar from the pin in the mise config file, which never moved, so the manifest goes back.
+3. Renovate sees the old version again and opens the same pull request.
+
+In threagile that ran four times for `oxfmt`, each bump undone by the lock file maintenance pull request after it. `mise-config` disables everything under `.mise/locks/`, leaving the pin in the mise config file as the only one Renovate touches.
+
+> [!NOTE]
+> `aube` is the package manager mise reaches for here. [`npm.package_manager`](https://mise.jdx.dev/dev-tools/backends/npm.html) defaults to `auto`, which prefers aube and falls back to npm, and aube writes a pnpm-format lock file. Whether a tool takes that route at all is decided by the mise registry rather than by the config. `oxfmt` resolves to `npm:oxfmt` first and gets a whole dependency graph, while `oxlint` resolves to `aqua:oxc-project/oxc/oxlint` first and gets a single binary. Write the backend explicitly to choose.
+
+### Monorepo release tags behind a registry name
+
+A bare mise registry name can resolve to an aqua package inside a monorepo, and the mise manager turns that into a `github-tags` lookup on the monorepo with a generic `v` prefix stripped. Where the repository tags each component separately, nothing parses as a version and the pin sits still.
+
+`oxfmt` and `oxlint` both resolve to `oxc-project/oxc`, which tags `oxfmt_v0.78.0` and `oxlint_v1.93.0`. Neither pin had moved since the day it was written. `mise-config` sets the right `extractVersion` per tool, which cannot be one shared pattern: anything loose enough to match both would offer `oxlint` releases to `oxfmt`.
+
+> [!WARNING]
+> This fails quietly. The lookup resolves, reports the current version and its age, and returns an empty update list. There is no warning, no Dependency Dashboard entry and nothing in the log. A pin that has not moved in months is the only symptom, so check any tool whose version looks older than its release cadence.
+
 ### Azure DevOps
 
 `azure-devops-config` sets `azureWorkItemType` to `Task`. Renovate has no issue concept on Azure DevOps, so it stores the Dependency Dashboard as a work item. The default type is `Issue`, which only exists in the `Basic` process. `Task` exists in `Basic`, `Agile` and `Scrum` alike.
